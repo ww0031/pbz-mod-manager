@@ -24,7 +24,14 @@ public sealed partial class ModItemViewModel : LocalizedObservableObject
         Integrity = ModManager.Integrity(record);
         HasUe4ssErrors = owner.HadUe4ssErrors(record);
         ModPageUrl = record.Recommended ? null : owner.Profile.ModPage(record.SourceFileName);
+        UpdateText = owner.NexusUpdateText(record);
     }
+
+    /// <summary>The newer file on Nexus Mods, such as "Update to 3"; null when the mod has none or is not known there.</summary>
+    public string? UpdateText { get; }
+
+    [RelayCommand]
+    private Task Update() => owner.UpdateNexusModAsync(record);
 
     /// <summary>
     /// The mod's page on the mod site, from the number in its download's file name; null without one, and for the

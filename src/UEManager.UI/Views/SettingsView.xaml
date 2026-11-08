@@ -67,6 +67,29 @@
             </StackPanel>
         </Border>
 
+        <!-- Nexus Mods: the API key for downloads from mod links, and Mod Manager Download links from the site. -->
+        <Border Margin="0,20,0,0" Style="{StaticResource Card}">
+            <StackPanel>
+                <TextBlock Style="{StaticResource Text.Title}" Text="Nexus Mods" />
+                <TextBlock Margin="0,6,0,18" Style="{StaticResource Text.Body}"
+                           Text="{ui:Loc 'The update check needs no account. To download from a mod link, enter your personal API key from your Nexus Mods account. With Premium, a link downloads directly; without it, the download starts with Mod Manager Download on the mod page.'}" />
+                <DockPanel Style="{StaticResource Field}">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{ui:Loc 'API key'}" />
+                    <TextBox Text="{Binding NexusApiKey, UpdateSourceTrigger=LostFocus}" />
+                </DockPanel>
+                <DockPanel Style="{StaticResource Field}">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{ui:Loc 'Download links'}" />
+                    <TextBlock Style="{StaticResource Text.Small}" Foreground="{StaticResource Brush.Text}" TextWrapping="Wrap" Text="{Binding NxmHandlerText}" />
+                </DockPanel>
+                <WrapPanel Margin="0,10,0,0">
+                    <Button Style="{StaticResource Button.Primary}" Content="{ui:Loc 'Get your API key'}" ui:Icon.Glyph="&#xE774;"
+                            Command="{Binding OpenNexusApiKeyPageCommand}" />
+                    <Button Margin="8,0,0,0" Content="{ui:Loc 'Check the key'}" Command="{Binding CheckNexusApiKeyCommand}" />
+                    <Button Margin="8,0,0,0" Content="{ui:Loc 'Open Mod Manager Download links with this app'}" Command="{Binding RegisterNxmCommand}" />
+                </WrapPanel>
+            </StackPanel>
+        </Border>
+
         <!-- Save backups: off until the game profile names the save folder -->
         <Border Margin="0,20,0,0" Style="{StaticResource Card}" IsEnabled="{Binding SaveBackupsAvailable}"
                 ToolTip="{Binding SaveBackupsHint}" ToolTipService.ShowOnDisabled="True">
@@ -186,7 +209,7 @@
                 <StackPanel>
                     <TextBlock Style="{StaticResource Text.Title}" Text="{ui:Loc 'Get help'}" />
                     <TextBlock Margin="0,6,0,0" Style="{StaticResource Text.Body}"
-                               Text="{ui:Loc 'Something does not work? Make a report for the help channel on Discord: you say what happened, the manager adds the facts a helper asks for first.'}" />
+                               Text="{ui:Loc 'Something does not work? Make a report to ask for help: you say what happened, the manager adds the facts a helper asks for first.'}" />
                 </StackPanel>
             </DockPanel>
         </Border>

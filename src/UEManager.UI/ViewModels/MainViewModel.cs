@@ -351,6 +351,10 @@ public sealed partial class MainViewModel : LocalizedObservableObject
 
     public string AppName => AppInfo.Name;
 
+    public string ProjectUrl => AppInfo.ProjectUrl;
+
+    public string ForkUrl => AppInfo.ForkUrl;
+
     /// <summary>The taskbar title; the game tells builds for different games apart.</summary>
     public string WindowTitle => $"{AppInfo.Name} · {GameDisplayName}";
 
@@ -670,6 +674,7 @@ public sealed partial class MainViewModel : LocalizedObservableObject
         gameWatch.Start();
         _ = CheckUe4ssManifestAsync();
         _ = Update.CheckAsync();
+        _ = CheckNexusUpdatesAsync(quiet: true);
         if (downloads.Count > 0)
             await InstallAsync(downloads);
     }
@@ -705,6 +710,11 @@ public sealed partial class MainViewModel : LocalizedObservableObject
             return;
         foreach (var source in sources)
         {
+            if (NexusMods.IsNxm(source))
+            {
+                await InstallNxmAsync(source);
+                continue;
+            }
             if (!ArchiveStager.IsSupported(source))
             {
                 ShowToast(L.F($"'{Path.GetFileName(source)}' is not a mod file this manager can install."), isError: true);
@@ -882,67 +892,113 @@ public sealed partial class MainViewModel : LocalizedObservableObject
     /// <summary>Shows the install review and waits for the user; null when cancelled.</summary>
     private async Task<InstallChoice?> ReviewAsync(InstallPreview preview, CatalogSource? catalog)
     {
-        var dialog = new InstallDialogViewModel(manager!, preview, ShowUe4ssGuide, catalog);
+        var dialog = new InstallDialogViewModel(manager!, preview, ShowUe4ssGuide, catalog, InstallLoader);
+        if (dialog.AutoChoice() is { } auto)
+            return auto;
         InstallDialog = dialog;
         var choice = await dialog.Result;
         InstallDialog = null;
         return choice;
     }
 
+    /// <summary>Downloads running in the background, shown at the bottom right of the window.</summary>
+    public ObservableCollection<DownloadItemViewModel> Downloads { get; } = [];
+
+    /// <summary>Finished downloads install one at a time.</summary>
+    private readonly SemaphoreSlim installTurn = new(1, 1);
+
     /// <summary>
-    /// One click on a mod's release: download the file, check its size and checksum, and install it. A download
-    /// that needs a choice or a look first opens the install review instead: variants, warnings, a mod installed by
-    /// hand that it would replace, or settings the player changed.
+    /// One click on a mod's release: download the file in the background, check its size and checksum, and install it.
+    /// A download that needs a choice or a look first opens the install review instead: variants, warnings, a mod
+    /// installed by hand that it would replace, or settings the player changed. The download is deleted afterwards.
     /// </summary>
     /// <param name="id">What the mod is known by, as its repo.</param>
     /// <param name="urls">Where the file can be downloaded, in order.</param>
-    internal async Task InstallFromReleaseAsync(string id, string name, string version, IReadOnlyList<string> urls, string fileName, long size, string? sha256)
+    /// <param name="shownSize">The size shown while downloading when <paramref name="size"/> is not known; not checked.</param>
+    internal async Task InstallFromReleaseAsync(string id, string name, string version, IReadOnlyList<string> urls, string fileName, long size, string? sha256,
+        long shownSize = 0)
     {
-        if (IsBusy || InstallDialog is not null || !EnsureGame())
+        if (!EnsureGame())
             return;
+        if (Downloads.Any(d => string.Equals(d.Id, id, StringComparison.OrdinalIgnoreCase)))
+        {
+            ShowToast(L.F($"{name} is already downloading."));
+            return;
+        }
         var folder = Path.Combine(paths.StagingDir, "download-" + Guid.NewGuid().ToString("N"));
+        var item = new DownloadItemViewModel(id, name, size > 0 ? size : shownSize);
         try
         {
             string? download = null;
-            await RunAsync(L.F($"Downloading {name}…"), async () =>
+            Downloads.Add(item);
+            try
             {
-                var progress = new Progress<double>(share => BusyText = L.F($"Downloading {name}…  {share:P0}"));
-                download = await FileDownloader.DownloadAsync(Http, urls, fileName, size, sha256, folder, name, progress);
-            });
+                download = await FileDownloader.DownloadAsync(Http, urls, fileName, size, sha256, folder, name, new Progress<double>(item.Report), item.Token);
+            }
+            catch (Exception ex) when (ex is ModException or IOException or UnauthorizedAccessException)
+            {
+                if (item.Token.IsCancellationRequested)
+                    ShowToast(L.F($"Stopped downloading {name}."));
+                else
+                {
+                    Log.Warn(ex.Message);
+                    ShowToast(ex is ModException mod ? L.Message(mod) : L.F($"Something went wrong: {ex.Message}"), isError: true);
+                }
+            }
+            finally
+            {
+                Downloads.Remove(item);
+            }
             if (download is null)
                 return;
-            InstallPreview? preview = null;
-            await RunAsync(L.F($"Reading {fileName}…"), async () => preview = await Task.Run(() => manager!.Inspect(download)));
-            if (preview is null)
-                return;
 
-            using (preview)
+            await installTurn.WaitAsync();
+            try
             {
-                if (!await CleanOldModLoaderAsync(preview, id))
-                    return;
-                // A loader's other entries are no choice to ask about, unless the player took one before.
-                var parts = preview.Packages.Where(p => !p.IsAlternate).ToList();
-                var check = manager!.Check(preview, parts, id);
-                if (preview.Packages.FirstOrDefault(p => p.IsAlternate && p.Variant == check.Replaces?.Variant) is { } taken)
-                {
-                    parts = [taken];
-                    check = manager.Check(preview, parts, id);
-                }
-                // A mod of the card may have several parts, such as PBZModLoader's DLL and its start file: all of them go.
-                var ours = string.Equals(id, RecommendedMain.Mod?.Repo, StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(id, RecommendedExtra.Mod?.Repo, StringComparison.OrdinalIgnoreCase);
-                var direct = (parts.Count == 1 || ours) && check.CanInstall && check.Warnings.Count == 0 && !check.HasEditedSettings
-                    && (check.Replaces is null || string.Equals(check.Replaces.CatalogId, id, StringComparison.OrdinalIgnoreCase));
-                var choice = direct
-                    ? new InstallChoice(parts, name, version, check.Replaces is not null, id)
-                    : await ReviewAsync(preview, new CatalogSource(id, name, version));
-                if (choice is not null)
-                    await InstallChoiceAsync(preview, choice, showMods: false);
+                while (IsBusy || InstallDialog is not null || Confirm is not null)
+                    await Task.Delay(250);
+                await InstallDownloadAsync(id, name, version, download, fileName);
+            }
+            finally
+            {
+                installTurn.Release();
             }
         }
         finally
         {
             TryDeleteFolder(folder);
+        }
+    }
+
+    private async Task InstallDownloadAsync(string id, string name, string version, string download, string fileName)
+    {
+        InstallPreview? preview = null;
+        await RunAsync(L.F($"Reading {fileName}…"), async () => preview = await Task.Run(() => manager!.Inspect(download)));
+        if (preview is null)
+            return;
+
+        using (preview)
+        {
+            if (!await CleanOldModLoaderAsync(preview, id))
+                return;
+            // A loader's other entries are no choice to ask about, unless the player took one before.
+            var parts = preview.Packages.Where(p => !p.IsAlternate).ToList();
+            var check = manager!.Check(preview, parts, id);
+            if (preview.Packages.FirstOrDefault(p => p.IsAlternate && p.Variant == check.Replaces?.Variant) is { } taken)
+            {
+                parts = [taken];
+                check = manager.Check(preview, parts, id);
+            }
+            // A mod of the card may have several parts, such as PBZModLoader's DLL and its start file: all of them go.
+            var ours = string.Equals(id, RecommendedMain.Mod?.Repo, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(id, RecommendedExtra.Mod?.Repo, StringComparison.OrdinalIgnoreCase);
+            var direct = (parts.Count == 1 || ours) && check.CanInstall && check.Warnings.Count == 0 && !check.HasEditedSettings
+                && (check.Replaces is null || string.Equals(check.Replaces.CatalogId, id, StringComparison.OrdinalIgnoreCase));
+            var choice = direct
+                ? new InstallChoice(parts, name, version, check.Replaces is not null, id)
+                : await ReviewAsync(preview, new CatalogSource(id, name, version));
+            if (choice is not null)
+                await InstallChoiceAsync(preview, choice, showMods: false);
         }
     }
 
@@ -1515,7 +1571,7 @@ public sealed partial class MainViewModel : LocalizedObservableObject
     private void OpenProjectPage() => TryOpen(AppInfo.ProjectUrl);
 
     [RelayCommand]
-    private void OpenDiscord() => TryOpen(AppInfo.DiscordUrl);
+    private void OpenForkPage() => TryOpen(AppInfo.ForkUrl);
 
     [RelayCommand]
     private void OpenBackups()
@@ -1828,7 +1884,7 @@ public sealed partial class MainViewModel : LocalizedObservableObject
     /// <summary>A dialog, the busy screen or the drop target covers the window.</summary>
     internal bool HasOverlay => IsBusy || IsDragOver || InstallDialog is not null || Ue4ssGuide is not null
         || Confirm is not null || HelpDialog is not null || ResetDialog is not null || SettingsEditor is not null || ModDetails is not null
-        || ModSets is not null || Update.IsDialogOpen || Update.IsChangelogOpen || IsPreReleaseDialogOpen || IsRemoteInfoOpen || RecommendedNotes is not null || RecommendedThanks is not null || IsDonationOpen || UnmanagedRows is not null;
+        || ModSets is not null || Update.IsDialogOpen || Update.IsChangelogOpen || IsPreReleaseDialogOpen || IsRemoteInfoOpen || RecommendedNotes is not null || RecommendedThanks is not null || UnmanagedRows is not null;
 
     /// <summary>The newest app version the banner at start announced; see <see cref="AppSettings.AnnouncedUpdate"/>.</summary>
     internal string? AnnouncedUpdate

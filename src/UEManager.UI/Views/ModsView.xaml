@@ -65,6 +65,10 @@
                         <Button Style="{StaticResource Button.Name}" Content="{Binding Name}"
                                 Command="{Binding ShowDetailsCommand}" ToolTip="{ui:Loc 'Show the details of this mod and every file it placed'}" />
                         <TextBlock Margin="0,3,0,0" Style="{StaticResource Text.Small}" Text="{Binding Detail}" />
+                        <Button Margin="0,4,0,0" HorizontalAlignment="Left" Style="{StaticResource Button.Link}" Foreground="{StaticResource Brush.Info}"
+                                Content="{Binding UpdateText}" Command="{Binding UpdateCommand}"
+                                ToolTip="{ui:Loc 'Download the newer file from Nexus Mods and install it in place of this one. The name you gave the mod stays.'}"
+                                Visibility="{Binding UpdateText, Converter={StaticResource VisibleIfSet}}" />
                         <TextBlock Margin="0,3,0,0" Style="{StaticResource Text.Small}" Foreground="{StaticResource Brush.Info}" Text="{Binding TagsText}"
                                    ToolTip="{Binding TagsText}" Visibility="{Binding TagsText, Converter={StaticResource VisibleIfSet}}" />
                         <Button Margin="0,4,0,0" Style="{StaticResource Button.Link}" Foreground="{StaticResource Brush.Danger}"
@@ -218,6 +222,19 @@
                 <Button Margin="8,0,0,0" Content="{ui:Loc 'Install from folder…'}" ui:Icon.Glyph="&#xE8B7;" Command="{Binding InstallFromFolderCommand}" />
             </StackPanel>
         </Grid>
+
+        <!-- A mod from its Nexus Mods link, and the update check for the mods that came from there. -->
+        <DockPanel Margin="0,26,0,0">
+            <Button DockPanel.Dock="Right" Margin="10,0,0,0" Style="{StaticResource Button.Primary}" Content="{Binding UpdateAllText}" ui:Icon.Glyph="&#xE896;"
+                    Command="{Binding UpdateAllNexusModsCommand}" Visibility="{Binding HasNexusUpdates, Converter={StaticResource Visible}}" />
+            <Button DockPanel.Dock="Right" Margin="10,0,0,0" Content="{ui:Loc 'Check for updates'}" ui:Icon.Glyph="&#xE895;"
+                    Command="{Binding CheckNexusUpdatesCommand}" IsEnabled="{Binding CanCheckNexusUpdates}"
+                    ToolTip="{ui:Loc 'Looks up each mod from Nexus Mods there. No account needed.'}" />
+            <Button DockPanel.Dock="Right" Margin="10,0,0,0" Content="{ui:Loc 'Import'}" ui:Icon.Glyph="&#xE71B;"
+                    Command="{Binding ImportNexusLinkCommand}" IsDefault="{Binding IsKeyboardFocusWithin, ElementName=NexusLinkBox}" />
+            <TextBox x:Name="NexusLinkBox" Style="{StaticResource TextBox.Search}" Text="{Binding NexusLink, UpdateSourceTrigger=PropertyChanged}"
+                     Tag="{ui:Loc 'Paste a Nexus Mods link, such as https://www.nexusmods.com/phantombladezero/mods/260'}" />
+        </DockPanel>
 
         <!-- The mod the app recommends for this game, apart from the player's own mods. -->
         <Border Margin="0,26,0,0" Style="{StaticResource Card}" Padding="0"

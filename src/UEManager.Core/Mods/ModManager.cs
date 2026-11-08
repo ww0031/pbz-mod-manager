@@ -169,12 +169,19 @@ public sealed class ModManager
             problems.Add($"PBZModLoader uses hid.dll, which Mods Menu needs. Change PBZModLoader to another entry first.");
 
         // A script mod runs only in its loader, so it waits for that loader. A loader's own download may bring its mods along.
+        string? missingLoader = null;
         foreach (var needed in selected.Select(p => p.NeedsLoader).OfType<string>().Distinct())
         {
             if (needed == PackageScanner.ForModsMenu && !IsModsMenuInstalled)
+            {
                 problems.Add($"This mod runs in Mods Menu, which is not installed. Install Mods Menu first, then this mod.");
+                missingLoader = needed;
+            }
             else if (needed == PackageScanner.ForModLoader && !IsModLoaderInstalled && !IsModLoader(preview, catalogId))
+            {
                 problems.Add($"This mod runs in PBZModLoader, which is not installed. Install it first from the top of the Mods page, then this mod.");
+                missingLoader = needed;
+            }
         }
 
         var sourceOnly = PackageScanner.SourceOnlyMods(selected);
@@ -273,7 +280,7 @@ public sealed class ModManager
                     problems.Add($"{path} is already in {TargetName(target)}, but the manager did not install it. Move or delete it first.");
             }
         }
-        return new InstallCheck(problems, warnings, replaces, needsUe4ss, editedSettings);
+        return new InstallCheck(problems, warnings, replaces, needsUe4ss, editedSettings, missingLoader);
     }
 
     /// <summary>
@@ -403,6 +410,24 @@ public sealed class ModManager
                 return;
             Commit(undo: () => (mod.Name, mod.Version, mod.Tags) = (oldName, oldVersion, oldTags));
             Log.Info($"Renamed \"{oldName}\" ({oldVersion ?? "no version"}) to \"{mod.Name}\" ({mod.Version ?? "no version"}), tags: {ModTags.Join(mod.Tags)}.");
+        }
+    }
+
+    /// <summary>
+    /// Marks a mod installed by hand with where it comes from, such as its Nexus Mods page, so a download from there
+    /// replaces it as an update even when the new version names its files differently. Only the mod list changes.
+    /// </summary>
+    public void Link(string id, string catalogId)
+    {
+        lock (gate)
+        {
+            var mod = Find(id);
+            if (string.Equals(mod.CatalogId, catalogId, StringComparison.OrdinalIgnoreCase))
+                return;
+            var old = mod.CatalogId;
+            mod.CatalogId = catalogId;
+            Commit(undo: () => mod.CatalogId = old);
+            Log.Info($"Linked \"{mod.Name}\" to {catalogId}.");
         }
     }
 

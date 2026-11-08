@@ -4,11 +4,11 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>12</LangVersion>
-    <Version>1.6.1</Version>
+    <Version>1.6.1.1</Version>
     <!-- A pre-release shows a yellow "Pre-release" box below About that explains what it means. -->
     <PreRelease>false</PreRelease>
-    <Authors>KintaroModding</Authors>
-    <Product>UE MM</Product>
+    <Authors>KintaroModding and contributors; modified by ww0031</Authors>
+    <Product>影之刃模组管理器</Product>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
     <!-- Symbols live inside the assemblies, so a release is the exe and nothing else. -->
     <DebugType>embedded</DebugType>

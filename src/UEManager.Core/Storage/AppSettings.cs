@@ -34,8 +34,8 @@ public sealed class AppSettings
 
     public bool CatalogSortDescending { get; set; }
 
-    /// <summary>The player removed the Donate button from the sidebar. The About page keeps it.</summary>
-    public bool HideDonateButton { get; set; }
+    /// <summary>The player's personal Nexus Mods API key, for downloads from mod links; null without one.</summary>
+    public string? NexusApiKey { get; set; }
 
     /// <summary>Where the main window was when it last closed; null opens it centred at its default size.</summary>
     public WindowPlacement? Window { get; set; }

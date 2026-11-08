@@ -81,22 +81,6 @@
                     </StackPanel>
 
                     <StackPanel DockPanel.Dock="Bottom" Margin="24,0,24,22">
-                        <!-- A donation; the X removes the button from here for good, and the About page keeps it. -->
-                        <Border Margin="0,0,0,10" CornerRadius="18" Background="{StaticResource Brush.Donate}"
-                                Visibility="{Binding ShowDonateButton, Converter={StaticResource Visible}}">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="30" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Button Style="{StaticResource Button.DonateRemove}" Command="{Binding RemoveDonateButtonCommand}"
-                                        ToolTip="{ui:Loc 'Remove this button'}" />
-                                <Button Grid.Column="1" Style="{StaticResource Button.DonateBesideX}" Content="{ui:Loc 'DONATE'}"
-                                        Command="{Binding ShowDonationCommand}" />
-                            </Grid>
-                        </Border>
-                        <Button Margin="0,0,0,10" Style="{StaticResource Button.Discord}" Content="{ui:Loc 'Join our Discord'}"
-                                Command="{Binding OpenDiscordCommand}" ToolTip="{ui:Loc 'Questions, news and help: the community on Discord'}" />
                         <Button Style="{StaticResource Button.Primary}" Content="{ui:Loc 'Launch game'}" ui:Icon.Glyph="&#xE768;"
                                 Command="{Binding LaunchGameCommand}" Padding="14,11" />
                         <Border Style="{StaticResource Divider}" Margin="0,20,0,14" />
@@ -253,7 +237,37 @@
         </Grid>
 
         <!-- ===== Message ===== -->
-        <Border Grid.Row="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,28,28" MaxWidth="480"
+        <StackPanel Grid.Row="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,28,28" MaxWidth="480">
+        <!-- Downloads in the background: each with its progress and a way to stop it. -->
+        <ItemsControl ItemsSource="{Binding Downloads}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Border Width="360" Margin="0,0,0,8" Background="{StaticResource Brush.PanelSolid}" BorderBrush="{StaticResource Brush.LineStrong}"
+                            BorderThickness="1" CornerRadius="2">
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="24" ShadowDepth="0" Opacity="0.6" Color="Black" />
+                        </Border.Effect>
+                        <DockPanel Margin="14,10,6,12">
+                            <Button DockPanel.Dock="Right" Style="{StaticResource Button.Icon}" Content="&#xE711;" FontFamily="{StaticResource Font.Icons}"
+                                    FontSize="10" Width="28" Height="28" VerticalAlignment="Top"
+                                    Command="{Binding CancelCommand}" ToolTip="{ui:Loc 'Stop the download'}" />
+                            <StackPanel>
+                                <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                                <TextBlock Margin="0,2,0,8" Style="{StaticResource Text.Small}" Text="{Binding Detail}" />
+                                <Grid Height="3" Background="{StaticResource Brush.Line}">
+                                    <Border Background="{StaticResource Brush.Accent}" RenderTransformOrigin="0,0.5">
+                                        <Border.RenderTransform>
+                                            <ScaleTransform ScaleX="{Binding Share}" />
+                                        </Border.RenderTransform>
+                                    </Border>
+                                </Grid>
+                            </StackPanel>
+                        </DockPanel>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <Border HorizontalAlignment="Right"
                 Background="{StaticResource Brush.PanelSolid}" BorderBrush="{StaticResource Brush.LineStrong}"
                 BorderThickness="1" CornerRadius="2"
                 Visibility="{Binding Toast, Converter={StaticResource VisibleIfSet}}">
@@ -274,6 +288,7 @@
                            Text="{Binding Toast.Text}" />
             </DockPanel>
         </Border>
+        </StackPanel>
 
         <!-- ===== New version: a short banner, once per version; dialogs open over it ===== -->
         <Border Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"
@@ -370,7 +385,7 @@
                     <TextBlock Style="{StaticResource Text.Overline}" Text="{ui:Loc 'About this version', Tracked=True}" />
                     <TextBlock Margin="0,8,0,0" Style="{StaticResource Text.Title}" Text="{ui:Loc 'Pre-release'}" />
                     <TextBlock Margin="0,10,0,0" Style="{StaticResource Text.Body}"
-                               Text="{ui:Loc 'UE MM is at the beginning of its development. This version most likely works. If something does not, an update with a fix follows quickly.&#10;&#10;Either way, expect frequent changes: features, screens and texts can still change from one version to the next.'}" />
+                               Text="{ui:Loc 'The app is at the beginning of its development. This version most likely works. If something does not, an update with a fix follows quickly.&#10;&#10;Either way, expect frequent changes: features, screens and texts can still change from one version to the next.'}" />
                     <StackPanel Margin="0,26,0,0" Orientation="Horizontal" HorizontalAlignment="Right">
                         <Button Style="{StaticResource Button.Primary}" Content="{ui:Loc 'Got it'}"
                                 Command="{Binding ClosePreReleaseCommand}" IsCancel="True" />
@@ -387,11 +402,11 @@
                 <StackPanel>
                     <TextBlock Style="{StaticResource Text.Overline}" Text="{ui:Loc 'Remote data download', Tracked=True}" />
                     <TextBlock Margin="0,12,0,0" Style="{StaticResource Text.Body}"
-                               Text="{ui:Loc 'Each time UE MM starts, it reads a small online data file. This tells the app what is new for the game, including the current UE4SS version and other details. You can get these changes without a new version of UE MM.'}" />
+                               Text="{ui:Loc 'Each time the app starts, it reads a small online data file. This tells the app what is new for the game, including the current UE4SS version and other details. You can get these changes without a new version of the app.'}" />
                     <TextBlock Margin="0,10,0,0" Style="{StaticResource Text.Body}"
                                Text="{ui:Loc 'The file is plain text (JSON) only. It contains no executable program code and adds nothing to the app. It only tells the app which downloads are available. Nothing is installed until you click. Every download, including UE4SS and app updates, is checked against a checksum before it is used.'}" />
                     <TextBlock Margin="0,10,0,0" Style="{StaticResource Text.Body}"
-                               Text="{ui:Loc 'The data and app updates come from Cloudflare\'s worldwide network, with GitHub as a backup. If neither is available, UE MM still works as usual, but the latest information and downloads may be missing.'}" />
+                               Text="{ui:Loc 'The data comes from Cloudflare\'s worldwide network, with GitHub as a backup. App updates come from GitHub. If neither is available, the app still works as usual, but the latest information and downloads may be missing.'}" />
                     <StackPanel Margin="0,18,0,0" Orientation="Horizontal">
                         <Ellipse Width="7" Height="7" VerticalAlignment="Center" Fill="{Binding RemoteTone, Converter={StaticResource Tone}}" />
                         <TextBlock Margin="9,0,0,0" VerticalAlignment="Center" FontFamily="{DynamicResource Font.Label}" FontSize="12"
@@ -464,24 +479,6 @@
                     </ItemsControl>
                     <Button Margin="0,22,0,0" HorizontalAlignment="Right" Style="{StaticResource Button.Primary}" Content="{ui:Loc 'Close'}"
                             Command="{Binding CloseThanksCommand}" IsCancel="True" />
-                </StackPanel>
-            </Border>
-        </Grid>
-
-        <!-- ===== A donation ===== -->
-        <Grid Grid.Row="1" Background="{StaticResource Brush.Overlay}"
-              Visibility="{Binding IsDonationOpen, Converter={StaticResource Visible}}">
-            <Border Style="{StaticResource Dialog}" Width="520">
-                <StackPanel>
-                    <TextBlock Style="{StaticResource Text.Title}" Text="{ui:Loc 'Thank you for using UE MM'}" />
-                    <TextBlock Margin="0,12,0,0" Style="{StaticResource Text.Body}"
-                               Text="{ui:Loc 'UE MM is free and open source. Every feature works the same with or without a donation.'}" />
-                    <TextBlock Margin="0,10,0,0" Style="{StaticResource Text.Body}" Text="{Binding DonationOptionalText}" />
-                    <StackPanel Margin="0,24,0,0" Orientation="Horizontal" HorizontalAlignment="Right">
-                        <Button Content="{ui:Loc 'Close'}" Command="{Binding CloseDonationCommand}" IsCancel="True" />
-                        <Button Margin="8,0,0,0" MinWidth="120" Style="{StaticResource Button.Donate}" Content="{ui:Loc 'DONATE'}"
-                                Command="{Binding DonateCommand}" />
-                    </StackPanel>
                 </StackPanel>
             </Border>
         </Grid>

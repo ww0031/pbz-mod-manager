@@ -4,6 +4,16 @@ What changed in each release of UE MM, newest first: one short line per change.
 The app shows this list (the **Changelog** link in the sidebar's update box), so
 every release adds its section at the top, as `## <version> (<yyyy-mm-dd>)`.
 
+## 1.6.1.1 (2026-11-08)
+- Modified version of UE MM 1.6.1 by KintaroModding and contributors, with a name of its own: 影之刃模组管理器
+- Import a mod by pasting its Nexus Mods link
+- Installed Nexus mods are checked for updates at start; update one mod or all of them with one click, and each keeps its name
+- Nexus Mods API key in Settings; free accounts download with Mod Manager Download or Slow download on the mod page, which hands the file to the manager
+- Downloads run in the background, with their progress at the bottom right; a finished download installs by itself and its file is then deleted
+- The install window opens only when there is something to choose
+- A missing Mods Menu or PBZModLoader gets a button to install it, right below the error
+- No Donate or Discord buttons; app updates come from this version's own releases on GitHub
+
 ## 1.6.1 (2026-11-07)
 - Open mod page in each mod's row and details, for a mod whose download kept the mod site's file name; the app reads the mod's number from that name, with no network
 - Mods installed with an older version get the link too; other mods show "No mod page", and the mods on the card show neither

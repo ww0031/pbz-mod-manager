@@ -4,7 +4,7 @@ namespace UEManager.UI.Services;
 
 internal static class AppInfo
 {
-    public const string Name = "UE MM";
+    public const string Name = "影之刃模组管理器";
 
     /// <summary>How the release zips start, as publish.ps1 names them.</summary>
     public const string ReleaseFilePrefix = "uemm";
@@ -12,27 +12,16 @@ internal static class AppInfo
     /// <summary>Where the original lives; works based on it keep linking here (NOTICE.md, term 1).</summary>
     public const string ProjectUrl = "https://github.com/KintaroModding/uemodmanager";
 
-    /// <summary>GitHub's answer for the newest release.</summary>
-    public const string LatestReleaseUrl = "https://api.github.com/repos/KintaroModding/uemodmanager/releases/latest";
+    /// <summary>Where this modified version lives; its releases are the app updates.</summary>
+    public const string ForkUrl = "https://github.com/ww0031/pbz-mod-manager";
 
-    /// <summary>
-    /// The newest release, read at every start for the update check, in order: copies of GitHub's answer with a copy of
-    /// the zip on Cloudflare Pages (the KintaroModding/metadata repo, deployed on every push), then GitHub itself.
-    /// </summary>
-    public static readonly IReadOnlyList<string> LatestReleaseUrls =
-    [
-        "https://metadata.openmods.nexus/uemodmanager/app/latest.json",
-        "https://uemm-metadata.pages.dev/uemodmanager/app/latest.json",
-        LatestReleaseUrl,
-    ];
+    /// <summary>GitHub's answer for the newest release of this modified version.</summary>
+    public const string LatestReleaseUrl = "https://api.github.com/repos/ww0031/pbz-mod-manager/releases/latest";
 
-    public const string ReleasesPageUrl = ProjectUrl + "/releases/latest";
+    /// <summary>The newest release, read at every start for the update check.</summary>
+    public static readonly IReadOnlyList<string> LatestReleaseUrls = [LatestReleaseUrl];
 
-    /// <summary>The invite to the community's Discord server.</summary>
-    public const string DiscordUrl = "https://discord.gg/8vtph8SCFe";
-
-    /// <summary>PayPal's page for a donation to the project.</summary>
-    public const string DonateUrl = "https://www.paypal.com/donate/?business=thanks-kintaro%40outlook.com&currency_code=EUR&item_name=thank+you+kintaro&no_recurring=1";
+    public const string ReleasesPageUrl = ForkUrl + "/releases/latest";
 
     public static string Version { get; } =
         Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion.Split('+')[0]

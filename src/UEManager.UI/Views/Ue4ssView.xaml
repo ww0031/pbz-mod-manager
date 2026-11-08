@@ -79,7 +79,7 @@
                         <Button Margin="8,0,0,0" Content="{ui:Loc 'Clear'}" ui:Icon.Glyph="&#xE894;" Command="{Binding ClearCommand}"
                                 IsEnabled="{Binding HasLog}" ToolTip="{ui:Loc 'Delete the log, so the old lines are gone. UE4SS writes a new one at the next game start.'}" />
                         <Button Margin="8,0,0,0" Content="{ui:Loc 'Copy'}" ui:Icon.Glyph="&#xE8C8;" Command="{Binding CopyCommand}"
-                                IsEnabled="{Binding HasLog}" ToolTip="{ui:Loc 'Copy the log, to paste it into Discord'}" />
+                                IsEnabled="{Binding HasLog}" ToolTip="{ui:Loc 'Copy the log, to paste it where you ask for help'}" />
                         <Button Margin="8,0,0,0" Content="{ui:Loc 'Open log file'}" ui:Icon.Glyph="&#xE8A5;" Command="{Binding OpenLogCommand}"
                                 IsEnabled="{Binding HasLog}" />
                         <Button Margin="8,0,0,0" Content="{ui:Loc 'Report a problem…'}" ui:Icon.Glyph="&#xE897;"

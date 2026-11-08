@@ -218,7 +218,7 @@ public sealed partial class AppUpdateViewModel(MainViewModel owner, HttpClient h
 
     /// <summary>Every release on GitHub, with its full notes and files.</summary>
     [RelayCommand]
-    private void OpenAllReleases() => owner.OpenPath(AppInfo.ProjectUrl + "/releases");
+    private void OpenAllReleases() => owner.OpenPath(AppInfo.ForkUrl + "/releases");
 
     /// <summary>A link in the release notes; only http and https links get here.</summary>
     [RelayCommand]

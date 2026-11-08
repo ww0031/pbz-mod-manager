@@ -26,6 +26,11 @@
                 <Button DockPanel.Dock="Right" Content="{ui:Loc 'Cancel'}" Command="{Binding CancelCommand}" IsCancel="True" />
             </DockPanel>
 
+            <!-- The script loader the mod runs in is missing: install it from here, under the problem that says so. -->
+            <Button DockPanel.Dock="Bottom" Margin="22,8,0,0" HorizontalAlignment="Left" Content="{Binding InstallLoaderText}" ui:Icon.Glyph="&#xE896;"
+                    Command="{Binding InstallLoaderCommand}"
+                    Visibility="{Binding InstallLoaderText, Converter={StaticResource VisibleIfSet}}" />
+
             <!-- Problems stop the install: always in view, next to the button they turn off. -->
             <ItemsControl DockPanel.Dock="Bottom" ItemsSource="{Binding Problems}" Focusable="False">
                 <ItemsControl.ItemTemplate>

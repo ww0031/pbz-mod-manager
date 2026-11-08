@@ -8,7 +8,7 @@ namespace UEManager.UI.ViewModels;
 
 /// <summary>
 /// The "Report a problem" window: the player says in a few words what happened, the manager adds the
-/// facts. Nothing is sent anywhere; the player copies the report into the help channel on Discord.
+/// facts. Nothing is sent anywhere; the player copies the report to wherever they ask for help.
 /// </summary>
 public sealed partial class HelpReportViewModel(MainViewModel owner, string facts) : LocalizedObservableObject
 {
@@ -27,16 +27,13 @@ public sealed partial class HelpReportViewModel(MainViewModel owner, string fact
         try
         {
             Clipboard.SetText(ReportText);
-            CopiedText = L.T("Copied. Paste it into the help channel on Discord.");
+            CopiedText = L.T("Copied. Paste it where you ask for help.");
         }
         catch (COMException ex)
         {
             CopiedText = L.F($"The clipboard is in use by another app. Try again. ({ex.Message})");
         }
     }
-
-    [RelayCommand]
-    private void OpenDiscord() => owner.OpenDiscordCommand.Execute(null);
 
     [RelayCommand]
     private void Close() => owner.CloseHelpDialog();

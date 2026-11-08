@@ -23,6 +23,7 @@ public sealed partial class InstallDialogViewModel : LocalizedObservableObject
     private readonly InstallPreview preview;
     private readonly TaskCompletionSource<InstallChoice?> result = new();
     private readonly Action showUe4ssGuide;
+    private readonly Action<string>? installLoader;
     private readonly CatalogSource? catalog;
     private InstallCheck? check;
     private bool selecting;
@@ -31,11 +32,14 @@ public sealed partial class InstallDialogViewModel : LocalizedObservableObject
     private bool placing;
     private string placesKey = "";
 
-    public InstallDialogViewModel(ModManager manager, InstallPreview preview, Action showUe4ssGuide, CatalogSource? catalog = null)
+    /// <param name="installLoader">Installs a missing script loader, by the name <see cref="PackageScanner.ForModLoader"/> gives it.</param>
+    public InstallDialogViewModel(ModManager manager, InstallPreview preview, Action showUe4ssGuide, CatalogSource? catalog = null,
+        Action<string>? installLoader = null)
     {
         this.manager = manager;
         this.preview = preview;
         this.showUe4ssGuide = showUe4ssGuide;
+        this.installLoader = installLoader;
         this.catalog = catalog;
         name = catalog?.Name ?? preview.SuggestedName;
         version = catalog?.Version ?? preview.SuggestedVersion ?? "";
@@ -174,21 +178,54 @@ public sealed partial class InstallDialogViewModel : LocalizedObservableObject
     private bool keepSettings = true;
 
     [RelayCommand(CanExecute = nameof(CanInstall))]
-    private void Install() => result.TrySetResult(new InstallChoice(
+    private void Install() => result.TrySetResult(Choice(Name));
+
+    private InstallChoice Choice(string name) => new(
         Packages.Where(p => p.IsSelected).Select(p => p.Package).ToList(),
-        Name,
+        name,
         string.IsNullOrWhiteSpace(Version) ? null : Version,
         check?.Replaces is not null,
         catalog?.Id,
         KeepSettings,
         Tags,
-        OwnFolder));
+        OwnFolder);
+
+    /// <summary>
+    /// The choice when the review would ask nothing: every part goes in (or an update keeps its variant), at most one
+    /// mod it may update, no warning. An update keeps the installed mod's name. Null when the player has to look.
+    /// </summary>
+    public InstallChoice? AutoChoice()
+    {
+        var keepsVariant = check?.Replaces?.Variant is not null;
+        if (!CanInstall || NeedsUe4ss || Warnings.Count > 0
+            || Packages.Any(p => !p.IsSelected && !(keepsVariant && p.IsVariant))
+            || Places.Count(p => !p.KeepsBoth) > 1 || (Places.Count > 0 && SelectedPlace is not { KeepsBoth: false }))
+            return null;
+        return Choice(check?.Replaces is { } old ? old.Name : Name);
+    }
 
     [RelayCommand]
     private void Cancel() => result.TrySetResult(null);
 
     [RelayCommand]
     private void ShowUe4ssGuide() => showUe4ssGuide();
+
+    /// <summary>The script loader the mod needs and that is missing; the dialog offers to install it.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(InstallLoaderText))]
+    private string? missingLoader;
+
+    public string? InstallLoaderText => MissingLoader is { } loader && installLoader is not null ? L.F($"Install {loader}") : null;
+
+    /// <summary>Closes the review and installs the loader; the player installs the mod again once it is in place.</summary>
+    [RelayCommand]
+    private void InstallLoader()
+    {
+        if (MissingLoader is not { } loader)
+            return;
+        result.TrySetResult(null);
+        installLoader?.Invoke(loader);
+    }
 
     /// <summary>Variants are one choice: selecting one clears the others.</summary>
     private void OnOptionChanged(PackageOptionViewModel option)
@@ -280,6 +317,7 @@ public sealed partial class InstallDialogViewModel : LocalizedObservableObject
         ConfirmText = old is null ? L.T("Install") : L.T("Update");
         CanInstall = check.CanInstall;
         NeedsUe4ss = check.NeedsUe4ss;
+        MissingLoader = check.MissingLoader;
         Rows = ModDetailsViewModel.Tree(FilesOf(chosen, ownFolder));
     }
 

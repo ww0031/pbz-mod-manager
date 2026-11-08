@@ -1,3 +1,33 @@
+# 影之刃模组管理器 (PBZ Mod Manager)
+
+> **这是修改版，不是原版。** 本项目基于 KintaroModding 及贡献者开发的
+> [UE MM](https://github.com/KintaroModding/uemodmanager)（GPL-3.0）修改而来，
+> 不是原版或官方发布版本。修改版的问题请在本仓库反馈，不要反馈给原项目。
+>
+> **This is a modified version.** Based on UE MM by KintaroModding and contributors
+> (https://github.com/KintaroModding/uemodmanager), under GPL-3.0 with the additional
+> terms in [NOTICE.md](NOTICE.md). It is not the original and not an official release.
+
+### 修改版新增功能
+
+- 粘贴 Nexus Mods 模组链接（例如 `https://www.nexusmods.com/phantombladezero/mods/260`）即可导入
+- 启动时检查已导入模组的更新，可一键更新单个或全部模组，更新后保留你自定义的名称
+- 设置 → Nexus Mods 中填写个人 API 密钥；免费账号在模组页面点击 **Mod Manager Download** 或 **Slow download**，文件会交给管理器下载
+- 后台下载，右下角显示进度；下载完成后自动安装，并删除下载包
+- 只有需要你选择时才弹出安装窗口
+- 缺少 Mods Menu 或 PBZModLoader 时，报错下方会出现安装按钮
+- 删除了捐赠和 Discord 按钮；程序自动更新改为检查本仓库的 Release
+
+### 下载
+
+在本仓库的 [Releases](https://github.com/ww0031/pbz-mod-manager/releases/latest) 下载
+`uemm_phantom-blade-zero_<版本>.zip`，解压到可写入的文件夹后运行 `UEModManager.exe`
+（需要 [.NET 8 桌面运行时 (x64)](https://dotnet.microsoft.com/download/dotnet/8.0)）。
+
+以下是原项目的说明 / The original README follows.
+
+---
+
 # UE MM
 
 A mod manager for Unreal Engine games. The first and, for now, only supported

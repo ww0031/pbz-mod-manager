@@ -62,8 +62,8 @@ internal sealed class SingleInstance : IDisposable
             AllowSetForegroundWindow(AnyProcess);
             using var pipe = new NamedPipeClientStream(".", PipeName(paths), PipeDirection.Out, PipeOptions.CurrentUserOnly);
             pipe.Connect(TimeSpan.FromSeconds(3));
-            // Relative paths mean nothing to the other process, which has its own current folder.
-            pipe.Write(JsonSerializer.SerializeToUtf8Bytes(downloads.Select(Path.GetFullPath).ToArray()));
+            // Relative paths mean nothing to the other process, which has its own current folder. An nxm:// link is no path.
+            pipe.Write(JsonSerializer.SerializeToUtf8Bytes(downloads.Select(d => Core.Mods.NexusMods.IsNxm(d) ? d : Path.GetFullPath(d)).ToArray()));
             return true;
         }
         catch (Exception ex) when (ex is IOException or TimeoutException or UnauthorizedAccessException)

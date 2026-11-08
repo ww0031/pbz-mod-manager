@@ -12,7 +12,7 @@
             <TextBlock Style="{StaticResource Text.Overline}" Text="{ui:Loc 'Help', Tracked=True}" />
             <TextBlock Margin="0,8,0,0" Style="{StaticResource Text.Title}" Text="{ui:Loc 'Report a problem'}" />
             <TextBlock Margin="0,8,0,0" Style="{StaticResource Text.Body}"
-                       Text="{ui:Loc 'Say in a few words what happened and what you did just before. The manager adds facts about the game, UE4SS and your mods, and leaves out your Windows user name. Nothing is sent: copy the report and paste it into the help channel on Discord.'}" />
+                       Text="{ui:Loc 'Say in a few words what happened and what you did just before. The manager adds facts about the game, UE4SS and your mods, and leaves out your Windows user name. Nothing is sent: copy the report and paste it where you ask for help.'}" />
 
             <TextBox Margin="0,16,0,0" Height="92" Style="{StaticResource TextBox.Multiline}"
                      Text="{Binding Problem, UpdateSourceTrigger=PropertyChanged}"
@@ -30,8 +30,6 @@
             <DockPanel Margin="0,20,0,0">
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                     <Button Content="{ui:Loc 'Close'}" Command="{Binding CloseCommand}" IsCancel="True" />
-                    <Button Margin="8,0,0,0" Style="{StaticResource Button.Discord}" Content="{ui:Loc 'Join our Discord'}"
-                            Command="{Binding OpenDiscordCommand}" />
                     <Button Margin="8,0,0,0" Style="{StaticResource Button.Primary}" Content="{ui:Loc 'Copy report'}" ui:Icon.Glyph="&#xE8C8;"
                             Command="{Binding CopyCommand}" />
                 </StackPanel>

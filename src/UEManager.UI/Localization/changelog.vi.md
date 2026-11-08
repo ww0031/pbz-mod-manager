@@ -2,6 +2,16 @@
 
 Bản tiếng Việt của CHANGELOG.md: giữ nguyên tiêu đề, mỗi thay đổi một dòng. Phiên bản chưa dịch hiển thị bằng tiếng Anh.
 
+## 1.6.1.1 (2026-11-08)
+- Bản sửa đổi của UE MM 1.6.1 do KintaroModding và những người đóng góp phát triển, mang tên riêng: 影之刃模组管理器
+- Nhập một mod bằng cách dán liên kết Nexus Mods của nó
+- Các mod Nexus đã cài được kiểm tra cập nhật khi khởi động; cập nhật một mod hoặc tất cả chỉ với một cú nhấp, mỗi mod giữ nguyên tên
+- Khóa API Nexus Mods trong Cài đặt; tài khoản miễn phí tải bằng Mod Manager Download hoặc Slow download trên trang mod, tệp được chuyển cho trình quản lý
+- Tải xuống chạy nền, tiến trình hiện ở góc dưới bên phải; tải xong sẽ tự cài đặt rồi xóa tệp tải về
+- Cửa sổ cài đặt chỉ mở khi có điều cần chọn
+- Khi thiếu Mods Menu hoặc PBZModLoader, có nút cài đặt ngay dưới thông báo lỗi
+- Không còn nút Ủng hộ và Discord; bản cập nhật ứng dụng lấy từ các bản phát hành GitHub của phiên bản này
+
 ## 1.6.1 (2026-11-07)
 - Nút Mở trang mod ở hàng và chi tiết của mỗi mod, cho mod có tệp tải về giữ nguyên tên tệp của trang web mod; ứng dụng đọc số của mod từ tên đó, không cần mạng
 - Mod đã cài bằng phiên bản cũ cũng có liên kết này; mod khác hiện "Không có trang mod", còn mod trên thẻ không hiện gì

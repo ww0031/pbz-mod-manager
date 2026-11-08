@@ -58,6 +58,26 @@ public static partial class ModNaming
     }
 
     /// <summary>
+    /// The file's own name and version on the mod site, as a download that kept the site's file name has them, such as
+    /// ("Wuchang Volice 2", "2") for "Wuchang Volice 2 260 2 2026-11-01T16-20Z azp3elF3r.zip"; null for any other name.
+    /// </summary>
+    public static (string Name, string Version)? SiteFile(string? fileName)
+    {
+        if (string.IsNullOrWhiteSpace(fileName))
+            return null;
+        var name = Path.GetFileName(Path.TrimEndingDirectorySeparator(fileName));
+        foreach (var stem in new[] { name, Path.GetFileNameWithoutExtension(name) })
+        {
+            if (SiteMatch(stem) is { } site)
+            {
+                var version = site.Match.Groups["version"].Value;
+                return (site.Match.Groups["name"].Value.Trim(), site.Dated ? version : version.Replace('-', '.'));
+            }
+        }
+        return null;
+    }
+
+    /// <summary>
     /// One of the mod site's two name patterns on <paramref name="stem"/>, as it is or without the copy number a
     /// browser adds to a second download of the same file, such as "(1)" or " (2)". Other names keep such a number.
     /// </summary>

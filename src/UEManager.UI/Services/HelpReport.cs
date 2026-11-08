@@ -22,7 +22,7 @@ internal sealed record HelpFacts(
     string? UpdateCheck = null);
 
 /// <summary>
-/// A text for the Discord help channel: the player's own words, then the facts a helper asks for first.
+/// A text for asking for help: the player's own words, then the facts a helper asks for first.
 /// The Windows user name is taken out.
 /// </summary>
 internal static partial class HelpReport
@@ -86,7 +86,7 @@ internal static partial class HelpReport
         return text.ToString().TrimEnd();
     }
 
-    /// <summary>The whole report: the player's words first, in a code block so Discord keeps the layout.</summary>
+    /// <summary>The whole report: the player's words first, in a code block so a chat or an issue keeps the layout.</summary>
     public static string Compose(string problem, string facts)
     {
         // Three backticks of the player's own would end the code block early.
