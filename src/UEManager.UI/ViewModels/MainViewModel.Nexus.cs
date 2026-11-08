@@ -174,32 +174,37 @@ public sealed partial class MainViewModel
     /// </summary>
     private async Task<NexusStart> InstallNexusFileAsync(NexusModInfo info, NexusFile file, ModRecord? installed, NxmLink? nxm)
     {
-        if (string.IsNullOrWhiteSpace(settings.NexusApiKey))
-        {
-            ShowToast(L.T("Downloads from Nexus Mods need your API key. Enter it in Settings ▸ Nexus Mods."), isError: true,
-                L.T("Open Settings"), () => SelectedPage = "Settings");
-            return NexusStart.Stopped;
-        }
+        // Still here when the player cancelled the review or the install failed: the site is not asked again.
+        var kept = KeptDownload(NexusMods.DownloadFileName(info.Ref, file, ""));
         string? url = null;
-        var onSite = false;
-        await RunAsync(L.T("Asking Nexus Mods for the download…"), async () =>
+        if (kept is null)
         {
-            try
+            if (string.IsNullOrWhiteSpace(settings.NexusApiKey))
             {
-                url = await NexusMods.DownloadUrlAsync(Http, settings.NexusApiKey, info.Ref, file.FileId, nxm);
+                ShowToast(L.T("Downloads from Nexus Mods need your API key. Enter it in Settings ▸ Nexus Mods."), isError: true,
+                    L.T("Open Settings"), () => SelectedPage = "Settings");
+                return NexusStart.Stopped;
             }
-            catch (NexusPremiumRequiredException)
+            var onSite = false;
+            await RunAsync(L.T("Asking Nexus Mods for the download…"), async () =>
             {
-                onSite = true;
+                try
+                {
+                    url = await NexusMods.DownloadUrlAsync(Http, settings.NexusApiKey, info.Ref, file.FileId, nxm);
+                }
+                catch (NexusPremiumRequiredException)
+                {
+                    onSite = true;
+                }
+            });
+            if (onSite)
+            {
+                await DownloadOnSiteAsync(info.Ref, file);
+                return NexusStart.OnSite;
             }
-        });
-        if (onSite)
-        {
-            await DownloadOnSiteAsync(info.Ref, file);
-            return NexusStart.OnSite;
+            if (url is null)
+                return NexusStart.Stopped;
         }
-        if (url is null)
-            return NexusStart.Stopped;
 
         // Each installed file of the mod has a mark of its own, so an update replaces that one and no other.
         var catalogId = installed?.CatalogId
@@ -208,10 +213,11 @@ public sealed partial class MainViewModel
             && !await RunAsync(L.T("Saving…"), () => Task.Run(() => manager!.Link(installed.Id, catalogId))))
             return NexusStart.Stopped;
 
-        var extension = Path.GetExtension(Uri.TryCreate(url, UriKind.Absolute, out var uri) ? Uri.UnescapeDataString(uri.AbsolutePath) : "");
+        var extension = kept is not null ? Path.GetExtension(kept)
+            : Path.GetExtension(Uri.TryCreate(url, UriKind.Absolute, out var uri) ? Uri.UnescapeDataString(uri.AbsolutePath) : "");
         if (!ArchiveStager.IsSupported("download" + extension))
             extension = ".zip";
-        await InstallFromReleaseAsync(catalogId, installed?.Name ?? info.Name, file.Version, [url],
+        await InstallFromReleaseAsync(catalogId, installed?.Name ?? info.Name, file.Version, url is null ? [] : [url],
             NexusMods.DownloadFileName(info.Ref, file, extension), 0, null, shownSize: file.Size);
         if (installed is not null && manager!.Mods.All(m => m.Id != installed.Id))
         {

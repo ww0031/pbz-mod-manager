@@ -51,8 +51,10 @@ public sealed class InstallPreview : IDisposable
 /// <param name="NeedsUe4ss">The selection holds Lua, DLL or Blueprint mods, and UE4SS is not installed.</param>
 /// <param name="EditedSettings">Settings files of <paramref name="Replaces"/> that the player changed, such as "ModName/Scripts/config.lua".</param>
 /// <param name="MissingLoader">The script loader the mod runs in that is not installed, as <see cref="PackageScanner.ForModLoader"/> names it.</param>
+/// <param name="InTheWay">Files of the same name in the mods folders that the manager did not install; the install moves them to the backups first.</param>
 public sealed record InstallCheck(IReadOnlyList<FormattableString> Problems, IReadOnlyList<FormattableString> Warnings, ModRecord? Replaces,
-    bool NeedsUe4ss = false, IReadOnlyList<string>? EditedSettings = null, string? MissingLoader = null)
+    bool NeedsUe4ss = false, IReadOnlyList<string>? EditedSettings = null, string? MissingLoader = null,
+    IReadOnlyList<(DeployTarget Target, string Path)>? InTheWay = null)
 {
     public bool CanInstall => Problems.Count == 0;
 

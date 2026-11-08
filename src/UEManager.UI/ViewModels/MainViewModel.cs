@@ -907,10 +907,24 @@ public sealed partial class MainViewModel : LocalizedObservableObject
     /// <summary>Finished downloads install one at a time.</summary>
     private readonly SemaphoreSlim installTurn = new(1, 1);
 
+    /// <summary>A download stays here until its mod is in, so another try needs no new download; staging empties at each start.</summary>
+    private string DownloadsDir => Path.Combine(paths.StagingDir, "downloads");
+
+    /// <summary>The download kept from before with this file name, without its extension; null when there is none.</summary>
+    internal string? KeptDownload(string name)
+    {
+        if (!Directory.Exists(DownloadsDir))
+            return null;
+        var safe = Path.GetFileName(FileDownloader.PathIn(DownloadsDir, name));
+        return Directory.EnumerateFiles(DownloadsDir)
+            .FirstOrDefault(f => string.Equals(Path.GetFileNameWithoutExtension(f), safe, StringComparison.OrdinalIgnoreCase));
+    }
+
     /// <summary>
     /// One click on a mod's release: download the file in the background, check its size and checksum, and install it.
     /// A download that needs a choice or a look first opens the install review instead: variants, warnings, a mod
-    /// installed by hand that it would replace, or settings the player changed. The download is deleted afterwards.
+    /// installed by hand that it would replace, or settings the player changed. The download is deleted once the mod
+    /// is in; a cancelled review or a failed install keeps it for the next try.
     /// </summary>
     /// <param name="id">What the mod is known by, as its repo.</param>
     /// <param name="urls">Where the file can be downloaded, in order.</param>
@@ -925,15 +939,16 @@ public sealed partial class MainViewModel : LocalizedObservableObject
             ShowToast(L.F($"{name} is already downloading."));
             return;
         }
-        var folder = Path.Combine(paths.StagingDir, "download-" + Guid.NewGuid().ToString("N"));
-        var item = new DownloadItemViewModel(id, name, size > 0 ? size : shownSize);
-        try
+        var download = FileDownloader.PathIn(DownloadsDir, fileName);
+        if (File.Exists(download) && (size <= 0 || new FileInfo(download).Length == size))
+            Log.Info($"Installing '{download}', downloaded before.");
+        else
         {
-            string? download = null;
+            var item = new DownloadItemViewModel(id, name, size > 0 ? size : shownSize);
             Downloads.Add(item);
             try
             {
-                download = await FileDownloader.DownloadAsync(Http, urls, fileName, size, sha256, folder, name, new Progress<double>(item.Report), item.Token);
+                download = await FileDownloader.DownloadAsync(Http, urls, fileName, size, sha256, DownloadsDir, name, new Progress<double>(item.Report), item.Token);
             }
             catch (Exception ex) when (ex is ModException or IOException or UnauthorizedAccessException)
             {
@@ -944,43 +959,41 @@ public sealed partial class MainViewModel : LocalizedObservableObject
                     Log.Warn(ex.Message);
                     ShowToast(ex is ModException mod ? L.Message(mod) : L.F($"Something went wrong: {ex.Message}"), isError: true);
                 }
+                return;
             }
             finally
             {
                 Downloads.Remove(item);
             }
-            if (download is null)
-                return;
+        }
 
-            await installTurn.WaitAsync();
-            try
-            {
-                while (IsBusy || InstallDialog is not null || Confirm is not null)
-                    await Task.Delay(250);
-                await InstallDownloadAsync(id, name, version, download, fileName);
-            }
-            finally
-            {
-                installTurn.Release();
-            }
+        await installTurn.WaitAsync();
+        try
+        {
+            while (IsBusy || InstallDialog is not null || Confirm is not null)
+                await Task.Delay(250);
+            // Gone when another click on the same update installed it meanwhile.
+            if (File.Exists(download) && await InstallDownloadAsync(id, name, version, download, fileName))
+                TryDeleteFile(download);
         }
         finally
         {
-            TryDeleteFolder(folder);
+            installTurn.Release();
         }
     }
 
-    private async Task InstallDownloadAsync(string id, string name, string version, string download, string fileName)
+    /// <returns>Whether the download is done with: its mod is in, or it cannot be read. A cancelled review or a failed install keeps it.</returns>
+    private async Task<bool> InstallDownloadAsync(string id, string name, string version, string download, string fileName)
     {
         InstallPreview? preview = null;
         await RunAsync(L.F($"Reading {fileName}…"), async () => preview = await Task.Run(() => manager!.Inspect(download)));
         if (preview is null)
-            return;
+            return true;
 
         using (preview)
         {
             if (!await CleanOldModLoaderAsync(preview, id))
-                return;
+                return false;
             // A loader's other entries are no choice to ask about, unless the player took one before.
             var parts = preview.Packages.Where(p => !p.IsAlternate).ToList();
             var check = manager!.Check(preview, parts, id);
@@ -997,25 +1010,37 @@ public sealed partial class MainViewModel : LocalizedObservableObject
             var choice = direct
                 ? new InstallChoice(parts, name, version, check.Replaces is not null, id)
                 : await ReviewAsync(preview, new CatalogSource(id, name, version));
-            if (choice is not null)
-                await InstallChoiceAsync(preview, choice, showMods: false);
+            return choice is not null && await InstallChoiceAsync(preview, choice, showMods: false);
         }
     }
 
     /// <param name="showMods">Switch to the Mods page afterwards; the openmods page stays where it is.</param>
-    private async Task InstallChoiceAsync(InstallPreview preview, InstallChoice choice, bool showMods)
+    /// <returns>Whether the mod is in.</returns>
+    private async Task<bool> InstallChoiceAsync(InstallPreview preview, InstallChoice choice, bool showMods)
     {
         ModRecord? installed = null;
+        var movedAside = 0;
         await RunAsync(L.F($"Installing {choice.Name}…"), async () => installed = await Task.Run(() =>
-            manager!.Install(preview, choice.Packages, choice.Name, choice.Version, choice.Replace, choice.CatalogId, choice.KeepSettings, choice.Tags is null ? null : ModTags.Parse(choice.Tags), choice.OwnFolder)));
+        {
+            movedAside = manager!.Check(preview, choice.Packages, choice.CatalogId, choice.OwnFolder).InTheWay?.Count ?? 0;
+            return manager.Install(preview, choice.Packages, choice.Name, choice.Version, choice.Replace, choice.CatalogId, choice.KeepSettings, choice.Tags is null ? null : ModTags.Parse(choice.Tags), choice.OwnFolder);
+        }));
         if (installed is null)
-            return;
+            return false;
         RefreshMods();
         if (showMods)
             SelectedPage = "Mods";
-        ShowToast(!choice.Replace ? L.F($"Installed \"{installed.Name}\".")
+        var done = !choice.Replace ? L.F($"Installed \"{installed.Name}\".")
             : installed.Version is null ? L.F($"Updated \"{installed.Name}\".")
-            : L.F($"Updated \"{installed.Name}\" to version {installed.Version}."));
+            : L.F($"Updated \"{installed.Name}\" to version {installed.Version}.");
+        if (movedAside > 0)
+            ShowToast(L.Join(done, L.Plural(movedAside,
+                    "A file of the same name that the manager did not install was in the way. It is in the backups now.",
+                    "{0} files of the same name that the manager did not install were in the way. They are in the backups now.")),
+                actionText: L.T("Open the backups"), action: OpenBackups);
+        else
+            ShowToast(done);
+        return true;
     }
 
     internal void OpenPath(string path) => TryOpen(path);
@@ -1247,6 +1272,18 @@ public sealed partial class MainViewModel : LocalizedObservableObject
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
             Log.Warn($"Folder '{folder}' could not be removed: {ex.Message}");
+        }
+    }
+
+    private static void TryDeleteFile(string file)
+    {
+        try
+        {
+            File.Delete(file);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            Log.Warn($"File '{file}' could not be removed: {ex.Message}");
         }
     }
 

@@ -90,17 +90,23 @@ public class ModManagerTests : IDisposable
     }
 
     [Fact]
-    public void An_unmanaged_file_with_the_same_name_blocks_the_install()
+    public void An_unmanaged_file_with_the_same_name_moves_to_the_backups()
     {
         Directory.CreateDirectory(game.ModsPath);
         File.WriteAllText(Deployed("Sharp_P.pak"), "installed by hand");
         using var preview = manager.Inspect(Download("Sharp"));
 
         var check = manager.Check(preview, preview.Packages.ToList());
+        Assert.True(check.CanInstall);
+        Assert.Equal([(DeployTarget.Mods, "Sharp_P.pak")], check.InTheWay!);
 
-        Assert.False(check.CanInstall);
-        Assert.Throws<ModException>(() => manager.Install(preview, preview.Packages.ToList(), "Sharp", null));
-        Assert.Equal("installed by hand", File.ReadAllText(Deployed("Sharp_P.pak")));
+        manager.Install(preview, preview.Packages.ToList(), "Sharp", null);
+
+        Assert.Equal("v1", File.ReadAllText(Deployed("Sharp_P.pak")));
+        var backups = new AppPaths(folder.Combine("Data")).BackupDir(game.Profile.Id);
+        var kept = Assert.Single(Directory.GetFiles(backups, "*", SearchOption.AllDirectories));
+        Assert.Equal(Path.Combine("~mods", "Sharp_P.pak"), Path.GetRelativePath(Path.GetDirectoryName(Path.GetDirectoryName(kept))!, kept));
+        Assert.Equal("installed by hand", File.ReadAllText(kept));
     }
 
     [Fact]

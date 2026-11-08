@@ -374,7 +374,7 @@
                 <StackPanel VerticalAlignment="Center">
                     <TextBlock FontWeight="SemiBold" Text="{Binding UnmanagedText}" />
                     <TextBlock Margin="0,3,0,0" Style="{StaticResource Text.Small}"
-                               Text="{ui:Loc 'The manager never changes or removes them.'}" />
+                               Text="{ui:Loc 'The manager never deletes them. A file in the way of a mod you install goes to the backups first.'}" />
                 </StackPanel>
             </DockPanel>
         </Border>

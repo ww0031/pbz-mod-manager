@@ -211,6 +211,7 @@ public sealed class ModManager
 
         ModRecord? replaces;
         IReadOnlyList<string> editedSettings = [];
+        var inTheWay = new List<(DeployTarget Target, string Path)>();
         lock (gate)
         {
             var owners = new List<ModRecord>();
@@ -238,7 +239,8 @@ public sealed class ModManager
                 }
                 else if (File.Exists(Path.Combine(TargetFolder(target), Local(path))))
                 {
-                    problems.Add($"{path} is already in {TargetName(target)}, but the manager did not install it. Move or delete it first.");
+                    // Most often the same mod put in by hand. It goes to the backups, so nothing of the player's is lost.
+                    inTheWay.Add((target, path));
                 }
             }
 
@@ -280,7 +282,7 @@ public sealed class ModManager
                     problems.Add($"{path} is already in {TargetName(target)}, but the manager did not install it. Move or delete it first.");
             }
         }
-        return new InstallCheck(problems, warnings, replaces, needsUe4ss, editedSettings, missingLoader);
+        return new InstallCheck(problems, warnings, replaces, needsUe4ss, editedSettings, missingLoader, inTheWay);
     }
 
     /// <summary>
@@ -324,12 +326,15 @@ public sealed class ModManager
             };
             var libraryFolder = LibraryFolderOf(record);
             var position = old is null ? mods.Count : mods.IndexOf(old);
+            var movedAside = new List<(string From, string To)>();
+            string? aside = null;
 
             void Undo()
             {
                 mods.Remove(record);
                 RemoveDeployedFiles(record);
                 FileSystem.TryDeleteDirectory(libraryFolder);
+                PutBack(movedAside, aside);
                 if (old is not null && !mods.Contains(old))
                     mods.Insert(Math.Min(position, mods.Count), old);
             }
@@ -341,6 +346,7 @@ public sealed class ModManager
             {
                 if (old is not null)
                     BackUpEditedSettings(old);
+                aside = MoveAside(check.InTheWay ?? [], record, movedAside);
                 Directory.CreateDirectory(libraryFolder);
                 foreach (var package in selected)
                 {
@@ -380,11 +386,62 @@ public sealed class ModManager
 
             if (old is not null)
                 FileSystem.TryDeleteDirectory(LibraryFolderOf(old));
+            if (aside is not null)
+                Log.Info($"Moved {movedAside.Count} file(s) in the way of \"{record.Name}\" that the manager did not install to '{aside}'.");
             Log.Info(old is null
                 ? $"Installed \"{record.Name}\" ({record.Files.Count} file(s), {record.TypeLabel})."
                 : $"Replaced \"{old.Name}\" with \"{record.Name}\" ({record.Files.Count} file(s), {record.TypeLabel}).");
             return record;
         }
+    }
+
+    /// <summary>
+    /// Moves the files of <see cref="InstallCheck.InTheWay"/> into a new folder below the backups, keeping the folder
+    /// they were in; <paramref name="moved"/> lists them for <see cref="PutBack"/>.
+    /// </summary>
+    /// <returns>The backup folder, or null when nothing was in the way.</returns>
+    private string? MoveAside(IReadOnlyList<(DeployTarget Target, string Path)> files, ModRecord mod, List<(string From, string To)> moved)
+    {
+        if (files.Count == 0)
+            return null;
+        var backup = Path.Combine(paths.BackupDir(Game.Profile.Id), $"{DateTime.Now:yyyyMMdd-HHmmss} {FileSystem.SafeName(mod.Name, mod.Id)}");
+        foreach (var (target, path) in files)
+        {
+            var from = Path.Combine(TargetFolder(target), Local(path));
+            var to = Path.Combine(backup, TargetName(target), Local(path));
+            Directory.CreateDirectory(Path.GetDirectoryName(to)!);
+            try
+            {
+                File.Move(from, to);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                throw new ModException($"{path} is already in {TargetName(target)}, and it could not be moved to the backups: a program, such as the game, may be using it. Close it, then try again. ({ex.Message})");
+            }
+            moved.Add((from, to));
+        }
+        return backup;
+    }
+
+    /// <summary>Puts the files <see cref="MoveAside"/> moved back where they were; the backup folder goes when all are back.</summary>
+    private static void PutBack(List<(string From, string To)> moved, string? backup)
+    {
+        var back = 0;
+        foreach (var (from, to) in Enumerable.Reverse(moved))
+        {
+            try
+            {
+                File.Move(to, from);
+                back++;
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                Log.Error($"'{from}' could not be put back; it is in '{to}'.", ex);
+            }
+        }
+        if (backup is not null && back == moved.Count)
+            FileSystem.TryDeleteDirectory(backup);
+        moved.Clear();
     }
 
     /// <summary>

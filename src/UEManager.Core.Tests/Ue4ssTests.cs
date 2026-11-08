@@ -149,7 +149,7 @@ public class Ue4ssTests : IDisposable
     }
 
     [Fact]
-    public void A_hand_installed_ue4ss_mod_is_never_overwritten()
+    public void A_hand_installed_ue4ss_mod_moves_to_the_backups_and_is_never_overwritten()
     {
         InstallUe4ss();
         var mine = Path.Combine(Win64, "ue4ss", "Mods", "DashTest", "Scripts", "main.lua");
@@ -157,9 +157,14 @@ public class Ue4ssTests : IDisposable
         File.WriteAllText(mine, "installed by hand");
         using var preview = manager.Inspect(LuaDownload("DashTest"));
 
-        Assert.False(manager.Check(preview, preview.Packages.ToList()).CanInstall);
-        Assert.Throws<ModException>(() => manager.Install(preview, preview.Packages.ToList(), "DashTest", null));
-        Assert.Equal("installed by hand", File.ReadAllText(mine));
+        Assert.True(manager.Check(preview, preview.Packages.ToList()).CanInstall);
+        manager.Install(preview, preview.Packages.ToList(), "DashTest", null);
+
+        Assert.NotEqual("installed by hand", File.ReadAllText(mine));
+        var backups = new AppPaths(folder.Combine("Data")).BackupDir(game.Profile.Id);
+        var kept = Assert.Single(Directory.GetFiles(backups, "main.lua", SearchOption.AllDirectories));
+        Assert.EndsWith(Path.Combine("ue4ss", "Mods", "DashTest", "Scripts", "main.lua"), kept);
+        Assert.Equal("installed by hand", File.ReadAllText(kept));
     }
 
     [Fact]

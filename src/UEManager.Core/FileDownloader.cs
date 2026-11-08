@@ -33,6 +33,10 @@ public static class FileDownloader
         throw last ?? new ModException($"{what} could not be downloaded: no address is set.");
     }
 
+    /// <summary>Where a download of <paramref name="fileName"/> into <paramref name="folder"/> goes.</summary>
+    public static string PathIn(string folder, string fileName) =>
+        Path.Combine(folder, FileSystem.SafeName(Path.GetFileName(fileName), "download"));
+
     /// <summary>
     /// Downloads <paramref name="url"/> into <paramref name="folder"/> as <paramref name="fileName"/> and
     /// returns its path. A file whose size or SHA-256 differs from the expected one is deleted and refused,
@@ -46,7 +50,7 @@ public static class FileDownloader
         TimeSpan? stallTimeout = null)
     {
         Directory.CreateDirectory(folder);
-        var target = Path.Combine(folder, FileSystem.SafeName(Path.GetFileName(fileName), "download"));
+        var target = PathIn(folder, fileName);
         var limit = stallTimeout ?? DefaultStallTimeout;
         // HttpClient's own timeout ends with the headers; this one also covers every read of the body.
         using var stall = CancellationTokenSource.CreateLinkedTokenSource(cancellation);

@@ -4,6 +4,10 @@ What changed in each release of UE MM, newest first: one short line per change.
 The app shows this list (the **Changelog** link in the sidebar's update box), so
 every release adds its section at the top, as `## <version> (<yyyy-mm-dd>)`.
 
+## 1.6.1.2 (2026-11-08)
+- A file of the same name that the manager did not install, such as a mod copied in by hand, no longer stops an install or update: it moves to the backups first
+- A download is kept until its mod is in: after a cancelled install window or a failed install, Update installs it without a new download
+
 ## 1.6.1.1 (2026-11-08)
 - Modified version of UE MM 1.6.1 by KintaroModding and contributors, with a name of its own: 影之刃模组管理器
 - Import a mod by pasting its Nexus Mods link

@@ -78,6 +78,21 @@ public class SaveFailureTests : IDisposable
     }
 
     [Fact]
+    public void A_failed_install_puts_back_the_file_in_its_way()
+    {
+        Install(Download("Other"));
+        File.WriteAllText(Deployed("Sharp_P.pak"), "installed by hand");
+
+        using (HoldList())
+            Assert.Throws<ModException>(() => Install(Download("Sharp")));
+
+        Assert.Equal("installed by hand", File.ReadAllText(Deployed("Sharp_P.pak")));
+        Assert.False(File.Exists(Deployed("Sharp_P.utoc")));
+        Assert.Empty(Directory.Exists(paths.BackupDir(game.Profile.Id))
+            ? Directory.GetFiles(paths.BackupDir(game.Profile.Id), "*", SearchOption.AllDirectories) : []);
+    }
+
+    [Fact]
     public void A_failed_uninstall_is_undone()
     {
         var mod = Install(Download("Sharp"));

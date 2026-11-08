@@ -2,6 +2,10 @@
 
 Bản tiếng Việt của CHANGELOG.md: giữ nguyên tiêu đề, mỗi thay đổi một dòng. Phiên bản chưa dịch hiển thị bằng tiếng Anh.
 
+## 1.6.1.2 (2026-11-08)
+- Tệp cùng tên không do trình quản lý cài, chẳng hạn mod tự chép vào, không còn chặn việc cài đặt hay cập nhật: tệp đó được chuyển vào bản sao lưu trước
+- Tệp tải xuống được giữ cho đến khi mod được cài: sau khi hủy cửa sổ cài đặt hoặc cài đặt thất bại, nhấn Cập nhật sẽ cài mà không cần tải lại
+
 ## 1.6.1.1 (2026-11-08)
 - Bản sửa đổi của UE MM 1.6.1 do KintaroModding và những người đóng góp phát triển, mang tên riêng: 影之刃模组管理器
 - Nhập một mod bằng cách dán liên kết Nexus Mods của nó
