@@ -1,0 +1,195 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:ui="clr-namespace:UEManager.UI"
+                    xmlns:vm="clr-namespace:UEManager.UI.ViewModels">
+
+    <!-- A mod's row and the loaders' card, shared by the Mods page and the Loaders page; the filter buttons too. -->
+    <!-- Column widths shared by the header and every row. -->
+    <GridLength x:Key="Col.Status">124</GridLength>
+    <GridLength x:Key="Col.Type">92</GridLength>
+    <GridLength x:Key="Col.Integrity">136</GridLength>
+    <GridLength x:Key="Col.Date">104</GridLength>
+    <GridLength x:Key="Col.Actions">212</GridLength>
+    <!-- What the table drops in a narrow window, so the mod's name keeps room; see ModsView.OnTableSizeChanged. -->
+    <Visibility x:Key="Mods.WideOnly">Visible</Visibility>
+
+    <!-- A button above the list that shows only the mods with one tag, or all mods. -->
+    <Style x:Key="Button.TagFilter" TargetType="Button" BasedOn="{StaticResource Button.StatusBox}">
+        <Setter Property="Margin" Value="0,0,6,6" />
+        <Setter Property="Padding" Value="10,4" />
+        <Setter Property="Foreground" Value="{StaticResource Brush.TextMuted}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Brush.Line}" />
+        <Setter Property="Background" Value="{StaticResource Brush.Field}" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding IsActive}" Value="True">
+                <Setter Property="Foreground" Value="{StaticResource Brush.Info}" />
+                <Setter Property="BorderBrush" Value="{StaticResource Brush.Info}" />
+                <Setter Property="Background" Value="{StaticResource Brush.InfoPanel}" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- One button of the row above the list: a state or a tag. -->
+    <DataTemplate x:Key="FilterButton" DataType="{x:Type vm:TagFilterItem}">
+        <Button Style="{StaticResource Button.TagFilter}" Command="{Binding Select}">
+            <TextBlock MaxWidth="240" FontSize="12" TextTrimming="CharacterEllipsis" Text="{Binding Label}" />
+        </Button>
+    </DataTemplate>
+
+    <!-- A mod's row: in the table, and for the recommended mod in its card above it. -->
+    <DataTemplate x:Key="ModRow" DataType="{x:Type vm:ModItemViewModel}">
+        <Border x:Name="Row" Padding="22,12" Background="Transparent"
+                BorderBrush="{StaticResource Brush.Line}" BorderThickness="0,0,0,1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="{DynamicResource Col.Status}" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="{DynamicResource Col.Type}" />
+                    <ColumnDefinition Width="{DynamicResource Col.Integrity}" />
+                    <ColumnDefinition Width="{DynamicResource Col.Date}" />
+                    <ColumnDefinition Width="{DynamicResource Col.Actions}" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <CheckBox Style="{StaticResource Toggle}" IsChecked="{Binding Enabled, Mode=OneWay}"
+                              Command="{Binding ToggleCommand}" ToolTip="{ui:Loc 'Enable or disable'}" />
+                    <TextBlock Margin="10,0,0,0" VerticalAlignment="Center" Style="{StaticResource Text.Small}"
+                               Text="{Binding EnabledText}" Visibility="{DynamicResource Mods.WideOnly}" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Margin="0,0,16,0" VerticalAlignment="Center">
+                    <Button Style="{StaticResource Button.Name}" Content="{Binding Name}"
+                            Command="{Binding ShowDetailsCommand}" ToolTip="{ui:Loc 'Show the details of this mod and every file it placed'}" />
+                    <TextBlock Margin="0,3,0,0" Style="{StaticResource Text.Small}" Text="{Binding Detail}" />
+                    <Button Margin="0,4,0,0" HorizontalAlignment="Left" Style="{StaticResource Button.Link}" Foreground="{StaticResource Brush.Info}"
+                            Content="{Binding UpdateText}" Command="{Binding UpdateCommand}"
+                            ToolTip="{ui:Loc 'Download the newer file from Nexus Mods and install it in place of this one. The name you gave the mod stays.'}"
+                            Visibility="{Binding UpdateText, Converter={StaticResource VisibleIfSet}}" />
+                    <TextBlock Margin="0,3,0,0" Style="{StaticResource Text.Small}" Foreground="{StaticResource Brush.Info}" Text="{Binding TagsText}"
+                               ToolTip="{Binding TagsText}" Visibility="{Binding TagsText, Converter={StaticResource VisibleIfSet}}" />
+                    <Button Margin="0,4,0,0" Style="{StaticResource Button.Link}" Foreground="{StaticResource Brush.Danger}"
+                            Content="{ui:Loc 'UE4SS reported errors at the last game start'}" Command="{Binding ShowUe4ssErrorsCommand}"
+                            ToolTip="{ui:Loc 'Show the lines of the UE4SS log that name this mod'}"
+                            Visibility="{Binding HasUe4ssErrors, Converter={StaticResource Visible}}" />
+                </StackPanel>
+
+                <Border Grid.Column="2" Style="{StaticResource Badge}">
+                    <TextBlock FontFamily="{DynamicResource Font.Label}" FontSize="11" Text="{Binding KindText}" />
+                </Border>
+
+                <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center"
+                            Background="Transparent" ToolTip="{Binding IntegrityHint}">
+                    <TextBlock Style="{StaticResource Text.Icon}" FontSize="12"
+                               Foreground="{Binding IntegrityTone, Converter={StaticResource Tone}}" Text="{Binding IntegrityGlyph}" />
+                    <TextBlock Margin="7,0,0,0" FontSize="12" VerticalAlignment="Center" Visibility="{DynamicResource Mods.WideOnly}"
+                               Foreground="{Binding IntegrityTone, Converter={StaticResource Tone}}" Text="{Binding IntegrityText}" />
+                </StackPanel>
+
+                <TextBlock Grid.Column="4" VerticalAlignment="Center" Style="{StaticResource Text.Small}" Visibility="{DynamicResource Mods.WideOnly}"
+                           Text="{Binding InstalledText}" ToolTip="{Binding InstalledFullText}" />
+
+                <StackPanel Grid.Column="5" VerticalAlignment="Center">
+                    <!-- Above the icons, on their right: the mod's page, known from the number in its download's file name. -->
+                    <StackPanel Margin="0,0,8,6" HorizontalAlignment="Right" Orientation="Horizontal"
+                                Visibility="{Binding ModPageUrl, Converter={StaticResource VisibleIfSet}}">
+                        <TextBlock Margin="0,0,5,0" VerticalAlignment="Center" Style="{StaticResource Text.Icon}" FontSize="10"
+                                   Foreground="{StaticResource Brush.TextMuted}" Text="&#xE774;" />
+                        <Button VerticalAlignment="Center" Style="{StaticResource Button.Link}" FontSize="11" Foreground="{StaticResource Brush.TextMuted}"
+                                Content="{ui:Loc 'Open mod page'}" Command="{Binding OpenModPageCommand}" ToolTip="{Binding ModPageUrl}" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Margin="0,0,4,0" Style="{StaticResource Button.Icon}" ui:Icon.Glyph="&#xE713;"
+                                Command="{Binding EditSettingsCommand}" ToolTip="{Binding EditSettingsHint}"
+                                ToolTipService.ShowOnDisabled="True"
+                                Visibility="{Binding HasSettings, Converter={StaticResource Visible}}" />
+                        <Button Margin="0,0,4,0" Style="{StaticResource Button.Icon}" ui:Icon.Glyph="&#xE7A7;"
+                                Command="{Binding ResetSettingsCommand}" ToolTip="{ui:Loc 'Reset the settings to the ones the mod came with'}"
+                                Visibility="{Binding CanResetSettings, Converter={StaticResource Visible}}" />
+                        <Button Margin="0,0,4,0" Style="{StaticResource Button.Icon}" ui:Icon.Glyph="&#xE8EC;"
+                                Command="{Binding AddTagCommand}" ToolTip="{ui:Loc 'Add tag'}"
+                                Visibility="{Binding CanTag, Converter={StaticResource Visible}}" />
+                        <Button Margin="0,0,4,0" Style="{StaticResource Button.Icon}" ui:Icon.Glyph="&#xE8FD;"
+                                Command="{Binding ShowDetailsCommand}" ToolTip="{ui:Loc 'Show the files of this mod in their folders'}" />
+                        <Button Style="{StaticResource Button.Icon}" ui:Icon.Glyph="&#xE838;"
+                                Command="{Binding OpenFolderCommand}" ToolTip="{ui:Loc 'Open the manager\'s copy of this mod'}" />
+                        <Button Margin="4,0,0,0" Style="{StaticResource Button.IconDanger}" ui:Icon.Glyph="&#xE74D;"
+                                Command="{Binding UninstallCommand}" ToolTip="{ui:Loc 'Uninstall'}" />
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </Border>
+        <DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding IsBesideGameFiles}" Value="True">
+                <Setter TargetName="Row" Property="Background" Value="{StaticResource Brush.GameFilesRow}" />
+            </DataTrigger>
+            <Trigger SourceName="Row" Property="IsMouseOver" Value="True">
+                <Setter TargetName="Row" Property="Background" Value="{StaticResource Brush.Hover}" />
+            </Trigger>
+        </DataTemplate.Triggers>
+    </DataTemplate>
+
+    <!-- A mod on the card at the top of the page: the recommended mod, or the extra download below it. -->
+    <DataTemplate x:Key="RecommendedOffer" DataType="{x:Type vm:RecommendedOfferViewModel}">
+        <StackPanel>
+            <DockPanel Margin="22,12">
+                <Button DockPanel.Dock="Right" Margin="16,0,0,0" VerticalAlignment="Center" Style="{StaticResource Button.Primary}"
+                        Content="{Binding ActionText}" ui:Icon.Glyph="&#xE896;" Command="{Binding InstallCommand}"
+                        Visibility="{Binding HasMainAction, Converter={StaticResource Visible}}" />
+                <Button DockPanel.Dock="Right" Margin="16,0,0,0" VerticalAlignment="Center"
+                        Content="{Binding ActionText}" ui:Icon.Glyph="&#xE896;" Command="{Binding InstallCommand}"
+                        Visibility="{Binding HasExtraAction, Converter={StaticResource Visible}}" />
+                <StackPanel VerticalAlignment="Center">
+                    <!-- The label's box is as wide on both mods, so the notes boxes line up in every language. -->
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="RecommendedLabel" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Border Padding="7,3" CornerRadius="2" BorderThickness="1"
+                                BorderBrush="{StaticResource Brush.Accent}" Background="{StaticResource Brush.AccentWash}">
+                            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Style="{StaticResource Text.Overline}"
+                                       Foreground="{StaticResource Brush.AccentBright}" Text="{Binding Label, Converter={StaticResource Tracked}}" />
+                        </Border>
+                        <Button Grid.Column="1" Margin="8,0,0,0" Padding="7,3" HorizontalAlignment="Left" Style="{StaticResource Button.StatusBox}" Command="{Binding ShowNotesCommand}"
+                                Foreground="{StaticResource Brush.Info}" BorderBrush="{StaticResource Brush.Info}" Background="{StaticResource Brush.InfoWash}"
+                                Visibility="{Binding HasNotes, Converter={StaticResource Visible}}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Style="{StaticResource Text.Icon}" FontSize="11" Text="&#xE946;" />
+                                <TextBlock Margin="6,0,0,0" VerticalAlignment="Center" FontSize="11" Text="{ui:Loc 'TECHNICAL NOTES'}" />
+                            </StackPanel>
+                        </Button>
+                        <Button Grid.Column="2" Margin="8,0,0,0" Padding="7,3" HorizontalAlignment="Left" Style="{StaticResource Button.StatusBox}" Command="{Binding ShowThanksCommand}"
+                                Foreground="{StaticResource Brush.Success}" BorderBrush="{StaticResource Brush.Success}" Background="{StaticResource Brush.SuccessWash}"
+                                Visibility="{Binding HasThanks, Converter={StaticResource Visible}}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Style="{StaticResource Text.Icon}" FontSize="11" Text="&#xEB51;" />
+                                <TextBlock Margin="6,0,0,0" VerticalAlignment="Center" FontSize="11" Text="{Binding ThanksBoxText}" />
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+                    <!-- The name and the version as a mod's row has them, in one line. -->
+                    <StackPanel Margin="0,6,0,0" Orientation="Horizontal" Visibility="{Binding ShowName, Converter={StaticResource Visible}}">
+                        <TextBlock VerticalAlignment="Center" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource Brush.Text}" Text="{Binding Name}" />
+                        <TextBlock Margin="10,0,0,0" VerticalAlignment="Center" Style="{StaticResource Text.Small}" Text="{Binding VersionText}"
+                                   Visibility="{Binding HasVersion, Converter={StaticResource Visible}}" />
+                    </StackPanel>
+                    <TextBlock Margin="0,3,0,0" Style="{StaticResource Text.Small}" TextTrimming="None" TextWrapping="Wrap" Text="{Binding Text}"
+                               Visibility="{Binding HasText, Converter={StaticResource Visible}}" />
+                    <TextBlock Margin="0,3,0,0" Style="{StaticResource Text.Small}" TextTrimming="None" TextWrapping="Wrap"
+                               Text="{Binding StatusText}"
+                               Visibility="{Binding HasStatus, Converter={StaticResource Visible}}" />
+                </StackPanel>
+            </DockPanel>
+            <StackPanel Visibility="{Binding IsInstalled, Converter={StaticResource Visible}}">
+                <Border Style="{StaticResource Divider}" />
+                <ContentControl Focusable="False" Content="{Binding Item}" ContentTemplate="{StaticResource ModRow}" />
+            </StackPanel>
+            <DockPanel Margin="22,12" Visibility="{Binding ShowRetire, Converter={StaticResource Visible}}">
+                <Button DockPanel.Dock="Right" Margin="16,0,0,0" VerticalAlignment="Center" Content="{Binding RetireButtonText}"
+                        ui:Icon.Glyph="&#xE74D;" Command="{Binding RetireCommand}" />
+                <TextBlock VerticalAlignment="Center" Style="{StaticResource Text.Small}" TextTrimming="None" TextWrapping="Wrap" Text="{Binding RetireText}" />
+            </DockPanel>
+        </StackPanel>
+    </DataTemplate>
+</ResourceDictionary>

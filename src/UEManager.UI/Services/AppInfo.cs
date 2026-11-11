@@ -23,6 +23,9 @@ internal static class AppInfo
 
     public const string ReleasesPageUrl = ForkUrl + "/releases/latest";
 
+    /// <summary>The afdian page of this modified version's author, for a donation.</summary>
+    public const string DonateUrl = "https://ifdian.net/a/ww0031";
+
     public static string Version { get; } =
         Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion.Split('+')[0]
         ?? "0.0.0";

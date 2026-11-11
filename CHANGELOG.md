@@ -4,6 +4,12 @@ What changed in each release of UE MM, newest first: one short line per change.
 The app shows this list (the **Changelog** link in the sidebar's update box), so
 every release adds its section at the top, as `## <version> (<yyyy-mm-dd>)`.
 
+## 2.0 (2026-11-11)
+- New Browse mods page: browse, search and sort this game's Nexus mods, preview a mod and install it with one click; adult mods are never shown
+- Mod names, summaries, descriptions and changelogs from Nexus are translated with a free online translator; switch back to the original text at any time
+- Simpler layout: the mod loader offers and warnings moved to the new Loaders page, and the Mods and Home pages show less
+- Donate to the author: a button in the sidebar and on the About page opens the afdian page of the author of this modified version
+
 ## 1.6.1.2 (2026-11-08)
 - A file of the same name that the manager did not install, such as a mod copied in by hand, no longer stops an install or update: it moves to the backups first
 - A download is kept until its mod is in: after a cancelled install window or a failed install, Update installs it without a new download

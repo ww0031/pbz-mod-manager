@@ -8,6 +8,10 @@
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:MainViewModel}">
     <UserControl.Resources>
+        <ResourceDictionary>
+        <ResourceDictionary.MergedDictionaries>
+            <ResourceDictionary Source="ModsResources.xaml" />
+        </ResourceDictionary.MergedDictionaries>
         <Style x:Key="FieldLabel" TargetType="TextBlock" BasedOn="{StaticResource Text.Caption}">
             <Setter Property="Width" Value="150" />
             <Setter Property="VerticalAlignment" Value="Center" />
@@ -23,19 +27,48 @@
                 <TextBlock HorizontalAlignment="Center" FontSize="11.5" Foreground="{Binding Tone, Converter={StaticResource Tone}}" Text="{Binding Text}" />
             </Border>
         </DataTemplate>
+        </ResourceDictionary>
     </UserControl.Resources>
 
     <StackPanel>
         <StackPanel Margin="0,6,0,0">
             <TextBlock Style="{StaticResource Text.Overline}" Text="{ui:Loc 'Script loader', Tracked=True}" />
-            <TextBlock Margin="0,10,0,0" Style="{StaticResource Text.Display}" Text="UE4SS" />
+            <TextBlock Margin="0,10,0,0" Style="{StaticResource Text.Display}" Text="{ui:Loc 'Loaders'}" />
             <Rectangle Width="200" Height="2" Margin="0,14,0,0" HorizontalAlignment="Left" Fill="{StaticResource Brush.Stroke}" />
         </StackPanel>
 
+        <!-- The loaders the app recommends for this game, apart from the player's own mods. -->
+        <Border Margin="0,28,0,0" Style="{StaticResource Card}" Padding="0"
+                Background="{StaticResource Brush.InfoPanel}" BorderBrush="{StaticResource Brush.InfoLine}"
+                Visibility="{Binding HasRecommended, Converter={StaticResource Visible}}">
+            <StackPanel Grid.IsSharedSizeScope="True">
+                <ContentControl Focusable="False" Content="{Binding RecommendedMain}" ContentTemplate="{StaticResource RecommendedOffer}"
+                                Visibility="{Binding RecommendedMain.IsVisible, Converter={StaticResource Visible}}" />
+                <StackPanel Visibility="{Binding RecommendedExtra.IsVisible, Converter={StaticResource Visible}}">
+                    <Border Style="{StaticResource Divider}" />
+                    <ContentControl Focusable="False" Content="{Binding RecommendedExtra}" ContentTemplate="{StaticResource RecommendedOffer}" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <!-- Both script loaders are in the game, and one of them is too old to run beside the other -->
+        <Border Margin="0,12,0,0" Style="{StaticResource Card}" Padding="22,14"
+                Visibility="{Binding HasOldScriptLoader, Converter={StaticResource Visible}}">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Left" Margin="0,0,16,0" Style="{StaticResource Text.Icon}" FontSize="18"
+                           Foreground="{StaticResource Brush.Warning}" Text="&#xE7BA;" />
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock FontWeight="SemiBold" TextWrapping="Wrap" Text="{ui:Loc 'Mods Menu or PBZModLoader needs an update'}" />
+                    <TextBlock Margin="0,3,0,0" Style="{StaticResource Text.Small}" TextTrimming="None" TextWrapping="Wrap"
+                               Text="{ui:Loc 'An older version of one of them causes problems with the other. Mods Menu 0.9.0 and PBZModLoader 2.1.0 or newer run together: update the older one.'}" />
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
         <!-- Runtime -->
-        <Border Margin="0,28,0,0" Style="{StaticResource Card}">
+        <Border Margin="0,20,0,0" Style="{StaticResource Card}">
             <StackPanel>
-                <TextBlock Style="{StaticResource Text.Title}" Text="{ui:Loc 'Runtime'}" />
+                <TextBlock Style="{StaticResource Text.Title}" Text="UE4SS" />
                 <TextBlock Margin="0,6,0,18" Style="{StaticResource Text.Body}"
                            Text="{ui:Loc 'Install and update keep your UE4SS settings, mods.txt and the files of your mods. Close the game before you change UE4SS.'}" />
                 <DockPanel Style="{StaticResource Field}">

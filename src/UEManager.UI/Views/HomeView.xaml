@@ -61,21 +61,7 @@
 
         <!-- Figures -->
         <Border Margin="0,20,0,0" Style="{StaticResource Card}" Padding="0">
-            <UniformGrid Columns="4">
-                <Border BorderBrush="{StaticResource Brush.Line}" BorderThickness="0,0,1,0" Padding="22,14">
-                    <StackPanel>
-                        <TextBlock Style="{StaticResource Text.Caption}" Text="{ui:Loc 'Store', Tracked=True}" />
-                        <TextBlock Margin="0,8,0,4" Style="{StaticResource Text.Value}" Text="{Binding StoreText}" />
-                        <TextBlock Style="{StaticResource Text.Small}" Text="{Binding StoreDetail}" />
-                    </StackPanel>
-                </Border>
-                <Border BorderBrush="{StaticResource Brush.Line}" BorderThickness="0,0,1,0" Padding="22,14">
-                    <StackPanel>
-                        <TextBlock Style="{StaticResource Text.Caption}" Text="{ui:Loc 'Build', Tracked=True}" />
-                        <TextBlock Margin="0,8,0,4" Style="{StaticResource Text.Value}" Text="{Binding BuildText}" />
-                        <TextBlock Style="{StaticResource Text.Small}" Text="{Binding BuildDetail}" />
-                    </StackPanel>
-                </Border>
+            <UniformGrid Columns="2">
                 <Border BorderBrush="{StaticResource Brush.Line}" BorderThickness="0,0,1,0" Padding="22,14">
                     <StackPanel>
                         <TextBlock Style="{StaticResource Text.Caption}" Text="{ui:Loc 'Mods installed', Tracked=True}" />

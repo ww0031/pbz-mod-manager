@@ -355,6 +355,8 @@ public sealed partial class MainViewModel : LocalizedObservableObject
 
     public string ForkUrl => AppInfo.ForkUrl;
 
+    public string DonateUrl => AppInfo.DonateUrl;
+
     /// <summary>The taskbar title; the game tells builds for different games apart.</summary>
     public string WindowTitle => $"{AppInfo.Name} · {GameDisplayName}";
 
@@ -458,13 +460,6 @@ public sealed partial class MainViewModel : LocalizedObservableObject
         _ => "—",
     };
 
-    public string StoreDetail => Game?.Store switch
-    {
-        GameStore.Steam or GameStore.Epic => L.T("Found automatically"),
-        GameStore.Manual => L.T("Chosen by hand"),
-        _ => L.T("Not found yet"),
-    };
-
     public string BuildText => Game?.BuildId ?? "—";
 
     /// <summary>Save backups need the game profile to name the save folder; see <see cref="SaveBackups.IsAvailable"/>.</summary>
@@ -525,13 +520,6 @@ public sealed partial class MainViewModel : LocalizedObservableObject
             ? L.F($"{GameDisplayName} was updated from version {previousBuild} to {Game?.BuildId}.")
             : L.F($"{GameDisplayName} was updated from build {previousBuild} to {Game?.BuildId}."),
         L.T("A game update can break mods until their authors update them. If the game crashes or acts strangely, disable mods one by one to find the one that needs an update."));
-
-    public string BuildDetail => Game?.Store switch
-    {
-        GameStore.Steam => L.T("Steam build id"),
-        GameStore.Epic => L.T("Epic version"),
-        _ => L.T("Not known for this install"),
-    };
 
     public string GamePath => Game?.RootPath ?? L.T("Not set");
 
@@ -1609,6 +1597,9 @@ public sealed partial class MainViewModel : LocalizedObservableObject
 
     [RelayCommand]
     private void OpenForkPage() => TryOpen(AppInfo.ForkUrl);
+
+    [RelayCommand]
+    private void OpenDonatePage() => TryOpen(AppInfo.DonateUrl);
 
     [RelayCommand]
     private void OpenBackups()

@@ -2,6 +2,12 @@
 
 Bản tiếng Việt của CHANGELOG.md: giữ nguyên tiêu đề, mỗi thay đổi một dòng. Phiên bản chưa dịch hiển thị bằng tiếng Anh.
 
+## 2.0 (2026-11-11)
+- Trang Duyệt mod mới: duyệt, tìm và sắp xếp mod Nexus của trò chơi này, xem trước và cài bằng một lần nhấn; mod người lớn không bao giờ hiển thị
+- Tên, tóm tắt, mô tả và nhật ký thay đổi của mod từ Nexus được dịch bằng công cụ dịch trực tuyến miễn phí; có thể chuyển về bản gốc bất cứ lúc nào
+- Bố cục gọn hơn: các đề xuất và cảnh báo về trình tải mod chuyển sang trang Trình nạp mới, trang Mod và trang chủ hiển thị ít thông tin hơn
+- Ủng hộ tác giả: một nút ở thanh bên và trên trang Giới thiệu mở trang afdian của tác giả bản sửa đổi
+
 ## 1.6.1.2 (2026-11-08)
 - Tệp cùng tên không do trình quản lý cài, chẳng hạn mod tự chép vào, không còn chặn việc cài đặt hay cập nhật: tệp đó được chuyển vào bản sao lưu trước
 - Tệp tải xuống được giữ cho đến khi mod được cài: sau khi hủy cửa sổ cài đặt hoặc cài đặt thất bại, nhấn Cập nhật sẽ cài mà không cần tải lại

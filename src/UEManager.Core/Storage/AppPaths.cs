@@ -34,6 +34,9 @@ public sealed class AppPaths
 
     public string LogsDir => Path.Combine(Root, "logs");
 
+    /// <summary>Machine translations of mod texts from Nexus Mods, kept so each text is translated once.</summary>
+    public string TranslationsFile => Path.Combine(Root, "translations.json");
+
     /// <summary>Scratch space for unpacked downloads. Emptied at start-up.</summary>
     public string StagingDir => Path.Combine(Root, "staging");
 

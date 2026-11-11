@@ -49,6 +49,21 @@
             </StackPanel>
         </Border>
 
+        <!-- A donation to the author of this modified version, not to the original's. -->
+        <Border Margin="0,20,0,0" Style="{StaticResource Card}">
+            <DockPanel>
+                <Button DockPanel.Dock="Right" Margin="24,0,0,0" VerticalAlignment="Center" Style="{StaticResource Button.Primary}"
+                        Content="{ui:Loc 'Donate to the author'}" ui:Icon.Glyph="&#xEB52;" Command="{Binding OpenDonatePageCommand}" />
+                <StackPanel>
+                    <TextBlock Style="{StaticResource Text.Title}" Text="{ui:Loc 'Support the author'}" />
+                    <TextBlock Margin="0,8,0,0" Style="{StaticResource Text.Body}"
+                               Text="{ui:Loc 'This modified version is free and open source, and every feature works the same without a donation. If you like it, you can support its author on afdian. It is fully optional.'}" />
+                    <Button Margin="0,4,0,0" HorizontalAlignment="Left" Style="{StaticResource Button.Link}" Content="{Binding DonateUrl}"
+                            Command="{Binding OpenDonatePageCommand}" />
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
         <Border Margin="0,20,0,0" Style="{StaticResource Card}">
             <StackPanel>
                 <TextBlock Style="{StaticResource Text.Title}" Text="{ui:Loc 'What it does'}" />

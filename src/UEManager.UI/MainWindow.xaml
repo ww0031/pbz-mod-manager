@@ -81,6 +81,9 @@
                     </StackPanel>
 
                     <StackPanel DockPanel.Dock="Bottom" Margin="24,0,24,22">
+                        <!-- A donation to the author of this modified version; the About page has it too. -->
+                        <Button Margin="0,0,0,10" Content="{ui:Loc 'Donate to the author'}" ui:Icon.Glyph="&#xEB52;"
+                                Command="{Binding OpenDonatePageCommand}" ToolTip="{ui:Loc 'Opens the afdian page of the author in your browser'}" />
                         <Button Style="{StaticResource Button.Primary}" Content="{ui:Loc 'Launch game'}" ui:Icon.Glyph="&#xE768;"
                                 Command="{Binding LaunchGameCommand}" Padding="14,11" />
                         <Border Style="{StaticResource Divider}" Margin="0,20,0,14" />
@@ -91,9 +94,10 @@
                         </StackPanel>
                         <TextBlock Margin="16,4,0,0" FontSize="11" Foreground="{StaticResource Brush.TextDim}"
                                    Text="{Binding AppVersionText}" />
-                        <!-- Where the remote data came from at this start; a click explains what it is. -->
+                        <!-- Shown only when the remote data could not be read at this start; a click explains it and tries again. -->
                         <Button Margin="0,12,0,0" Style="{StaticResource Button.StatusBox}" Command="{Binding ShowRemoteInfoCommand}"
                                 ToolTip="{ui:Loc 'Where the app\'s remote data comes from'}"
+                                Visibility="{Binding CanRetryRemote, Converter={StaticResource Visible}}"
                                 Foreground="{Binding RemoteTone, Converter={StaticResource Tone}}"
                                 BorderBrush="{Binding RemoteTone, Converter={StaticResource Tone}}"
                                 Background="{Binding RemoteTone, Converter={StaticResource Tone}, ConverterParameter=wash}">
@@ -160,16 +164,19 @@
                         <StackPanel>
                             <RadioButton Style="{StaticResource NavItem}" Content="{ui:Loc 'Home'}" ui:Icon.Glyph="&#xE80F;"
                                          IsChecked="{Binding SelectedPage, Converter={StaticResource Page}, ConverterParameter=Home}" />
+                            <RadioButton Style="{StaticResource NavItem}" Content="{ui:Loc 'Mods'}" ui:Icon.Glyph="&#xE8F1;"
+                                         IsChecked="{Binding SelectedPage, Converter={StaticResource Page}, ConverterParameter=Mods}" />
+                            <RadioButton Style="{StaticResource NavItem}" Content="{ui:Loc 'Browse mods'}" ui:Icon.Glyph="&#xE721;"
+                                         Visibility="{Binding HasBrowse, Converter={StaticResource Visible}}"
+                                         IsChecked="{Binding SelectedPage, Converter={StaticResource Page}, ConverterParameter=Browse}" />
                             <Grid>
-                                <RadioButton Style="{StaticResource NavItem}" Content="{ui:Loc 'Mods'}" ui:Icon.Glyph="&#xE8F1;"
-                                             IsChecked="{Binding SelectedPage, Converter={StaticResource Page}, ConverterParameter=Mods}" />
-                                <!-- A new version of the recommended mod waits on this page. -->
+                                <RadioButton Style="{StaticResource NavItem}" Content="{ui:Loc 'Loaders'}" ui:Icon.Glyph="&#xE943;"
+                                             IsChecked="{Binding SelectedPage, Converter={StaticResource Page}, ConverterParameter=Ue4ss}" />
+                                <!-- A new version of a recommended loader waits on this page. -->
                                 <TextBlock Margin="0,0,26,0" HorizontalAlignment="Right" VerticalAlignment="Center" FontFamily="{DynamicResource Font.Label}"
                                            FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource Brush.Info}" IsHitTestVisible="False"
                                            Text="{ui:Loc 'UPDATE'}" Visibility="{Binding IsRecommendedUpdateAvailable, Converter={StaticResource Visible}}" />
                             </Grid>
-                            <RadioButton Style="{StaticResource NavItem}" Content="UE4SS" ui:Icon.Glyph="&#xE943;"
-                                         IsChecked="{Binding SelectedPage, Converter={StaticResource Page}, ConverterParameter=Ue4ss}" />
                             <!-- Filled by Catalog\CatalogResources.xaml while the catalog is switched on. -->
                             <ContentControl Focusable="False" Content="{DynamicResource CatalogNavItem}" />
                             <RadioButton Style="{StaticResource NavItem}" Content="{ui:Loc 'Settings'}" ui:Icon.Glyph="&#xE713;"
@@ -226,6 +233,9 @@
                     <Grid MaxWidth="1120" Margin="48,0,48,28">
                         <views:HomeView Visibility="{Binding SelectedPage, Converter={StaticResource Page}, ConverterParameter=Home}" />
                         <views:ModsView x:Name="ModsPage" Visibility="{Binding SelectedPage, Converter={StaticResource Page}, ConverterParameter=Mods}" />
+                        <Grid Visibility="{Binding SelectedPage, Converter={StaticResource Page}, ConverterParameter=Browse}">
+                            <views:NexusBrowseView DataContext="{Binding Browse}" />
+                        </Grid>
                         <views:Ue4ssView x:Name="Ue4ssPage" Visibility="{Binding SelectedPage, Converter={StaticResource Page}, ConverterParameter=Ue4ss}" />
                         <ContentControl Focusable="False" Content="{DynamicResource CatalogPage}"
                                         Visibility="{Binding SelectedPage, Converter={StaticResource Page}, ConverterParameter=Catalog}" />
@@ -351,6 +361,12 @@
                 <TextBlock Margin="0,8,0,0" Style="{StaticResource Text.Body}" HorizontalAlignment="Center"
                            Text="{ui:Loc '.zip  ·  .7z  ·  .rar  ·  .pak  ·  .utoc  ·  .ucas  ·  folders'}" />
             </StackPanel>
+        </Grid>
+
+        <!-- ===== Mod preview from the Browse page: under every other dialog, so a question about an install shows over it ===== -->
+        <Grid Grid.Row="1" Background="{StaticResource Brush.Overlay}"
+              Visibility="{Binding Browse.Preview, Converter={StaticResource VisibleIfSet}, FallbackValue=Collapsed}">
+            <views:NexusPreviewDialog DataContext="{Binding Browse.Preview}" Margin="40" />
         </Grid>
 
         <!-- ===== Install review ===== -->

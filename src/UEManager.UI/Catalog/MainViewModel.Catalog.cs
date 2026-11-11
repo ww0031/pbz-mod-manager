@@ -23,12 +23,18 @@ public sealed partial class MainViewModel
                 settings.CatalogSort is null || settings.CatalogSortDescending);
     }
 
-    partial void OnModsChanged() => Catalog?.UpdateInstalled(manager?.Mods ?? []);
+    partial void OnModsChanged()
+    {
+        Catalog?.UpdateInstalled(manager?.Mods ?? []);
+        browse?.UpdateInstalled();
+    }
 
     partial void OnSelectedPageChanged(string value)
     {
         if (value == "Catalog")
             _ = Catalog?.LoadAsync();
+        else if (value == "Browse")
+            _ = Browse?.LoadAsync();
     }
 
     internal void SaveCatalogSort(CatalogSortField field, bool descending)
