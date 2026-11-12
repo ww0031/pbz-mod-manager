@@ -37,6 +37,9 @@ public static class FileDownloader
     public static string PathIn(string folder, string fileName) =>
         Path.Combine(folder, FileSystem.SafeName(Path.GetFileName(fileName), "download"));
 
+    /// <summary>Added to a download's name until it is whole and checked, so a download cut off by the app's end never looks finished.</summary>
+    public const string PartExtension = ".part";
+
     /// <summary>
     /// Downloads <paramref name="url"/> into <paramref name="folder"/> as <paramref name="fileName"/> and
     /// returns its path. A file whose size or SHA-256 differs from the expected one is deleted and refused,
@@ -51,6 +54,7 @@ public static class FileDownloader
     {
         Directory.CreateDirectory(folder);
         var target = PathIn(folder, fileName);
+        var part = target + PartExtension;
         var limit = stallTimeout ?? DefaultStallTimeout;
         // HttpClient's own timeout ends with the headers; this one also covers every read of the body.
         using var stall = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
@@ -62,7 +66,7 @@ public static class FileDownloader
                 throw new ModException($"{what} could not be downloaded: the server answered {(int)response.StatusCode} {response.ReasonPhrase}.");
             var total = response.Content.Headers.ContentLength ?? expectedSize;
             await using (var input = await response.Content.ReadAsStreamAsync(stall.Token))
-            await using (var output = File.Create(target))
+            await using (var output = File.Create(part))
             {
                 var buffer = new byte[81920];
                 long done = 0;
@@ -80,27 +84,28 @@ public static class FileDownloader
         }
         catch (OperationCanceledException) when (!cancellation.IsCancellationRequested)
         {
-            FileSystem.TryDeleteFile(target);
+            FileSystem.TryDeleteFile(part);
             throw new ModException($"{what} could not be downloaded: no data arrived for {limit.TotalSeconds:0} seconds. Check the connection, then try again.");
         }
         catch (Exception ex) when (ex is HttpRequestException or IOException or OperationCanceledException)
         {
-            FileSystem.TryDeleteFile(target);
+            FileSystem.TryDeleteFile(part);
             throw new ModException($"{what} could not be downloaded: {ex.Message}");
         }
 
-        var size = new FileInfo(target).Length;
+        var size = new FileInfo(part).Length;
         if (expectedSize is > 0 && size != expectedSize)
         {
-            FileSystem.TryDeleteFile(target);
+            FileSystem.TryDeleteFile(part);
             throw new ModException($"{what} was downloaded, but the file has {size:N0} bytes instead of {expectedSize:N0}, so it was not installed. Try again later.");
         }
         if (!string.IsNullOrWhiteSpace(expectedSha256)
-            && !string.Equals(FileSystem.Sha256(target), expectedSha256.Trim(), StringComparison.OrdinalIgnoreCase))
+            && !string.Equals(FileSystem.Sha256(part), expectedSha256.Trim(), StringComparison.OrdinalIgnoreCase))
         {
-            FileSystem.TryDeleteFile(target);
+            FileSystem.TryDeleteFile(part);
             throw new ModException($"{what} was downloaded, but the file is not the expected one (its checksum differs), so it was not installed.");
         }
+        File.Move(part, target, overwrite: true);
         Log.Info($"Downloaded '{url}' to '{target}'.");
         return target;
     }

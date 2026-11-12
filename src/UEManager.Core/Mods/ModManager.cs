@@ -84,7 +84,24 @@ public sealed class ModManager
     public string LibraryFolderOf(ModRecord mod) => Path.Combine(paths.LibraryDir(Game.Profile.Id), mod.Id);
 
     /// <summary>Removes downloads left in staging by an earlier session.</summary>
-    public static void ClearStaging(AppPaths paths) => FileSystem.TryDeleteDirectory(paths.StagingDir);
+    /// <summary>Empties staging at start, but keeps the finished downloads; a download the app's end cut off goes.</summary>
+    public static void ClearStaging(AppPaths paths)
+    {
+        if (!Directory.Exists(paths.StagingDir))
+            return;
+        foreach (var folder in Directory.EnumerateDirectories(paths.StagingDir))
+        {
+            if (!string.Equals(Path.GetFullPath(folder), Path.GetFullPath(paths.DownloadsDir), StringComparison.OrdinalIgnoreCase))
+                FileSystem.TryDeleteDirectory(folder);
+        }
+        foreach (var file in Directory.EnumerateFiles(paths.StagingDir))
+            FileSystem.TryDeleteFile(file);
+        if (Directory.Exists(paths.DownloadsDir))
+        {
+            foreach (var part in Directory.EnumerateFiles(paths.DownloadsDir, "*" + FileDownloader.PartExtension))
+                FileSystem.TryDeleteFile(part);
+        }
+    }
 
     /// <summary>The game folder a target deploys into. UE4SS's folder depends on the installed version.</summary>
     public string TargetFolder(DeployTarget target) => target switch

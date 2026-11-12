@@ -90,5 +90,8 @@ public class NexusModsTests
         Assert.Equal("260", ModNaming.SiteModId(name));
         Assert.Equal(("Wuchang Volice 2", "3"), ModNaming.SiteFile(name));
         Assert.Null(NexusMods.FindUpdate(Wuchang, name, null));
+        Assert.Equal((260, Wuchang[2].FileId), NexusMods.DownloadIds(name));
+        Assert.Null(NexusMods.DownloadIds("Wuchang Volice 2 260 2 2026-11-01T16-20Z azp3elF3r.zip"));
+        Assert.Null(NexusMods.DownloadIds("超广角.zip"));
     }
 }

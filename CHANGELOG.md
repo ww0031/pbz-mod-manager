@@ -4,6 +4,12 @@ What changed in each release of UE MM, newest first: one short line per change.
 The app shows this list (the **Changelog** link in the sidebar's update box), so
 every release adds its section at the top, as `## <version> (<yyyy-mm-dd>)`.
 
+## 2.2 (2026-11-12)
+- Mods you downloaded but did not install stay after a restart. They show on the Mods page: click Install to add one, or Delete if you no longer want it
+- Fixed: after the PC was turned off and on again, the app sometimes did not open and said it "does not answer"
+- Clicking the app several times while it opens no longer says it "does not answer"; the open window shows instead
+- Opened straight from a zip or rar file, the app asks you to extract it first, or it stops opening after a restart
+
 ## 2.1 (2026-11-12)
 - The Mods page shows each mod as a card with its picture and summary from Nexus, as the Browse page does; switch between Preview and Compact above the list
 - Mods from Nexus are named in your language; an installed mod whose name is still the site's English name takes it too, and a name you chose stays

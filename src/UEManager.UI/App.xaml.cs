@@ -50,6 +50,11 @@ public partial class App : Application
 
     private SingleInstance? instance;
 
+    /// <summary>The main window is up. An error before it ends the app, which could only hold the data folder without a window.</summary>
+    private bool started;
+
+    private string logsDir = "";
+
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
@@ -58,8 +63,25 @@ public partial class App : Application
         // --data-dir <folder> keeps a test run away from the real data folder.
         var dataDir = ArgumentAfter(e.Args, "--data-dir");
         var paths = dataDir is null ? AppPaths.NextToApp() : new AppPaths(dataDir);
-        L.Current.SetLanguage(AppSettings.Load(paths).Language);
+        var language = AppSettings.Load(paths).Language;
+        L.Current.SetLanguage(language);
         LanguageFonts.Follow(Resources);
+        // Opened inside an archive, the app runs from a temporary folder, which goes with the mod list once the archiver closes or Windows restarts.
+        if (dataDir is null && RunsFromTempFolder())
+        {
+            // Such a start is mostly the first one, before any language is chosen: the warning is in the language of Windows.
+            if (language is null && L.Current.Offer() is { } windows)
+                L.Current.SetLanguage(windows.Code);
+            var answer = MessageBox.Show(
+                L.F($"UEModManager.exe was opened inside an archive, so it runs from a temporary folder:\n\n{AppContext.BaseDirectory}\n\nOnce the archiver closes or the PC restarts, this folder is deleted, and the app's mod list with it. The app then no longer opens.\n\nFirst extract the whole archive to a folder that stays, such as a folder on drive D, then start UEModManager.exe from there.\n\nRun it from the temporary folder anyway?"),
+                AppInfo.Name, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
+            L.Current.SetLanguage(language);
+            if (answer != MessageBoxResult.Yes)
+            {
+                Shutdown();
+                return;
+            }
+        }
         try
         {
             paths.EnsureWritable();
@@ -74,6 +96,7 @@ public partial class App : Application
             return;
         }
         Log.Initialize(paths.LogsDir);
+        logsDir = paths.LogsDir;
         instance = SingleInstance.TryAcquire(paths, e.Args.Contains(AfterUpdateOption) ? TimeSpan.FromSeconds(30) : TimeSpan.Zero);
         if (instance is null)
         {
@@ -82,6 +105,14 @@ public partial class App : Application
             return;
         }
         Log.Info($"Starting {AppInfo.Version} from '{AppContext.BaseDirectory}'.");
+        // Listens at once: a start can take seconds on a slow PC, and a second click meanwhile must find the app answering.
+        // What it hands over waits for this start to end, as it runs on this thread.
+        MainViewModel? viewModel = null;
+        instance.Listen(downloads => Dispatcher.BeginInvoke(() =>
+        {
+            if (viewModel is not null && MainWindow is not null)
+                Receive(viewModel, downloads);
+        }));
         DispatcherUnhandledException += OnUnhandledException;
         CleanUpAfterUpdate();
 
@@ -113,10 +144,10 @@ public partial class App : Application
         if (ue4ssManifestUrl is not null)
             Log.Info($"UE4SS manifest from the command line: '{ue4ssManifestUrl}'.");
 
-        var viewModel = new MainViewModel(profile, paths, ArtSet.Load(), catalogUrl, updateUrl, ue4ssManifestUrl);
+        viewModel = new MainViewModel(profile, paths, ArtSet.Load(), catalogUrl, updateUrl, ue4ssManifestUrl);
         MainWindow = new MainWindow { DataContext = viewModel };
         MainWindow.Show();
-        instance.Listen(downloads => Dispatcher.BeginInvoke(() => Receive(viewModel, downloads)));
+        started = true;
         _ = viewModel.InitializeAsync(DownloadArguments(e.Args));
     }
 
@@ -189,6 +220,15 @@ public partial class App : Application
         return options;
     }
 
+    private static bool RunsFromTempFolder()
+    {
+        var app = Path.GetFullPath(AppContext.BaseDirectory);
+        // %TEMP% may be written in short 8.3 names, so the long form is checked too.
+        string[] temps = [Path.GetFullPath(Path.GetTempPath()),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Temp") + Path.DirectorySeparatorChar];
+        return temps.Any(temp => app.StartsWith(temp, StringComparison.OrdinalIgnoreCase));
+    }
+
     /// <summary>
     /// Deletes the old exe an update left behind. Right after the restart, the copy of the app that
     /// ran it may still be ending, so this tries a few times in the background.
@@ -204,11 +244,18 @@ public partial class App : Application
         });
     }
 
-    private static void OnUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+    private void OnUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
         Log.Error("Unhandled error.", e.Exception);
+        e.Handled = true;
+        if (!started)
+        {
+            MessageBox.Show(L.F($"{AppInfo.Name} could not start: {L.Message(e.Exception)}\n\nThe details are in the log:\n{logsDir}"),
+                AppInfo.Name, MessageBoxButton.OK, MessageBoxImage.Error);
+            Shutdown(1);
+            return;
+        }
         MessageBox.Show(L.F($"Something went wrong: {L.Message(e.Exception)}\n\nThe details are in the log."),
             AppInfo.Name, MessageBoxButton.OK, MessageBoxImage.Error);
-        e.Handled = true;
     }
 }

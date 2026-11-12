@@ -43,6 +43,9 @@ public sealed class AppPaths
     /// <summary>Scratch space for unpacked downloads. Emptied at start-up.</summary>
     public string StagingDir => Path.Combine(Root, "staging");
 
+    /// <summary>Downloads whose install was cancelled or failed; they outlast a restart, so another try needs no new download.</summary>
+    public string DownloadsDir => Path.Combine(StagingDir, "downloads");
+
     public string GameDir(string gameId) => Path.Combine(Root, "games", gameId);
 
     /// <summary>Manager-owned copies of every installed mod, one folder per mod.</summary>

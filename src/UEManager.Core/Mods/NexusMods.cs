@@ -151,6 +151,18 @@ public static partial class NexusMods
         return $"{name} {mod.ModId} {version} {time} f{file.FileId}{extension}";
     }
 
+    /// <summary>The mod and file of a download named by <see cref="DownloadFileName"/>; null for any other name.</summary>
+    public static (int ModId, int FileId)? DownloadIds(string fileName)
+    {
+        var stem = Path.GetFileNameWithoutExtension(fileName);
+        var last = stem[(stem.LastIndexOf(' ') + 1)..];
+        return last.Length > 1 && last[0] == 'f'
+            && int.TryParse(last[1..], NumberStyles.None, CultureInfo.InvariantCulture, out var fileId)
+            && int.TryParse(ModNaming.SiteModId(fileName), NumberStyles.None, CultureInfo.InvariantCulture, out var modId)
+                ? (modId, fileId)
+                : null;
+    }
+
     /// <summary>The mod's name, files and card, from the public API; no account needed.</summary>
     public static async Task<NexusModInfo> GetModAsync(HttpClient http, NexusModRef mod, CancellationToken cancellation = default)
     {

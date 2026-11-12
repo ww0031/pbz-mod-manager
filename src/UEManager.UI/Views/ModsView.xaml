@@ -54,6 +54,31 @@
             </StackPanel>
         </Button>
 
+        <!-- Downloads whose install was cancelled or failed: installed from here without downloading again. -->
+        <Border Margin="0,12,0,0" Padding="16,10" Style="{StaticResource Card}" Visibility="{Binding HasKeptDownloads, Converter={StaticResource Visible}}">
+            <StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock VerticalAlignment="Center" Style="{StaticResource Text.Icon}" FontSize="13" Foreground="{StaticResource Brush.Info}" Text="&#xE896;" />
+                    <TextBlock Margin="10,0,0,0" VerticalAlignment="Center" Style="{StaticResource Text.Small}" Text="{Binding KeptDownloadsText}" />
+                </StackPanel>
+                <ItemsControl ItemsSource="{Binding KeptDownloads}" Focusable="False">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type vm:KeptDownloadViewModel}">
+                            <DockPanel Margin="23,8,0,0">
+                                <Button DockPanel.Dock="Right" Margin="8,0,0,0" VerticalAlignment="Center" Padding="8,3" FontSize="12"
+                                        Content="{ui:Loc 'Delete'}" ui:Icon.Glyph="&#xE74D;" Command="{Binding DeleteCommand}" />
+                                <Button DockPanel.Dock="Right" VerticalAlignment="Center" Padding="8,3" FontSize="12" Style="{StaticResource Button.Primary}"
+                                        Content="{ui:Loc 'Install'}" ui:Icon.Glyph="&#xE896;" Command="{Binding InstallCommand}" />
+                                <TextBlock DockPanel.Dock="Right" Margin="12,0" VerticalAlignment="Center" Style="{StaticResource Text.Small}"
+                                           Foreground="{StaticResource Brush.TextDim}" Text="{Binding SizeText}" />
+                                <TextBlock VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Text="{Binding Title}" ToolTip="{Binding Path}" />
+                            </DockPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </Border>
+
         <!-- Search -->
         <DockPanel Margin="0,26,0,12">
             <Button DockPanel.Dock="Right" Margin="10,0,0,0" Content="{ui:Loc 'Test without mods'}" ui:Icon.Glyph="&#xE7E8;"

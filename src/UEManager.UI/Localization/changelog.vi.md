@@ -2,6 +2,12 @@
 
 Bản tiếng Việt của CHANGELOG.md: giữ nguyên tiêu đề, mỗi thay đổi một dòng. Phiên bản chưa dịch hiển thị bằng tiếng Anh.
 
+## 2.2 (2026-11-12)
+- Mod đã tải nhưng chưa cài vẫn còn sau khi mở lại ứng dụng. Chúng hiện trên trang Mod: bấm Cài để cài, không cần nữa thì bấm Xóa
+- Sửa lỗi: sau khi tắt máy và mở lại, ứng dụng đôi khi không mở được và báo "không phản hồi"
+- Bấm mở ứng dụng nhiều lần sẽ không còn báo "không phản hồi" nữa, mà hiện ngay cửa sổ đang mở
+- Mở thẳng trong tệp nén, ứng dụng sẽ nhắc bạn giải nén ra trước, nếu không thì sau khi khởi động lại máy sẽ không mở được
+
 ## 2.1 (2026-11-12)
 - Trang Mod hiển thị mỗi mod thành thẻ với ảnh và mô tả ngắn từ Nexus, như trang Duyệt mod; chuyển giữa Xem trước và Gọn phía trên danh sách
 - Mod từ Nexus được đặt tên theo ngôn ngữ của bạn; mod đã cài còn giữ tên tiếng Anh của trang cũng được đổi, tên bạn tự đặt được giữ nguyên

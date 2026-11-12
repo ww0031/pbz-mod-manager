@@ -897,8 +897,78 @@ public sealed partial class MainViewModel : LocalizedObservableObject
     /// <summary>Finished downloads install one at a time.</summary>
     private readonly SemaphoreSlim installTurn = new(1, 1);
 
-    /// <summary>A download stays here until its mod is in, so another try needs no new download; staging empties at each start.</summary>
-    private string DownloadsDir => Path.Combine(paths.StagingDir, "downloads");
+    /// <summary>A download stays here until its mod is in, so another try needs no new download, also after a restart.</summary>
+    private string DownloadsDir => paths.DownloadsDir;
+
+    /// <summary>Downloads on their way into the game now; the kept downloads leave them out.</summary>
+    private readonly HashSet<string> installingDownloads = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>Downloads whose install was cancelled or failed, shown on the Mods page until installed or deleted.</summary>
+    public ObservableCollection<KeptDownloadViewModel> KeptDownloads { get; } = [];
+
+    public bool HasKeptDownloads => KeptDownloads.Count > 0;
+
+    public string KeptDownloadsText => L.Plural(KeptDownloads.Count,
+        "{0} download is not installed yet", "{0} downloads are not installed yet");
+
+    private void RefreshKeptDownloads()
+    {
+        KeptDownloads.Clear();
+        try
+        {
+            if (Directory.Exists(DownloadsDir))
+            {
+                foreach (var file in new DirectoryInfo(DownloadsDir).EnumerateFiles().OrderBy(f => f.Name, StringComparer.OrdinalIgnoreCase))
+                {
+                    if (!file.Name.EndsWith(FileDownloader.PartExtension, StringComparison.OrdinalIgnoreCase) && !installingDownloads.Contains(file.FullName))
+                        KeptDownloads.Add(new KeptDownloadViewModel(this, file.FullName, file.Length));
+                }
+            }
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            Log.Warn($"The downloads folder could not be read: {ex.Message}");
+        }
+        OnPropertyChanged(nameof(HasKeptDownloads));
+        OnPropertyChanged(nameof(KeptDownloadsText));
+    }
+
+    /// <summary>
+    /// Installs a kept download without downloading it again. One from Nexus Mods goes the way of its first try, so it
+    /// updates the mod it came for and keeps a name the player chose; any other goes through the install review.
+    /// </summary>
+    internal async Task InstallKeptAsync(KeptDownloadViewModel kept)
+    {
+        if (!EnsureGame())
+            return;
+        if (!File.Exists(kept.Path))
+        {
+            RefreshKeptDownloads();
+            return;
+        }
+        if (NexusGame is { } game && NexusMods.DownloadIds(kept.Path) is var (modId, fileId))
+        {
+            NexusModInfo? info = null;
+            if (!await RunAsync(L.T("Reading the mod on Nexus Mods…"), async () => info = await NexusMods.GetModAsync(Http, new NexusModRef(game, modId))))
+                return;
+            if (info!.Files.FirstOrDefault(f => f.FileId == fileId) is { } file
+                && string.Equals(KeptDownload(NexusMods.DownloadFileName(info.Ref, file, "")), kept.Path, StringComparison.OrdinalIgnoreCase))
+            {
+                await InstallNexusFileAsync(info, file, InstalledFrom(info, file), nxm: null);
+                return;
+            }
+        }
+        await InstallAsync([kept.Path]);
+        if (manager?.Mods.Any(m => string.Equals(m.SourceFileName, Path.GetFileName(kept.Path), StringComparison.OrdinalIgnoreCase)) == true)
+            TryDeleteFile(kept.Path);
+        RefreshKeptDownloads();
+    }
+
+    internal void DeleteKept(KeptDownloadViewModel kept)
+    {
+        TryDeleteFile(kept.Path);
+        RefreshKeptDownloads();
+    }
 
     /// <summary>The download kept from before with this file name, without its extension; null when there is none.</summary>
     internal string? KeptDownload(string name)
@@ -957,6 +1027,7 @@ public sealed partial class MainViewModel : LocalizedObservableObject
             }
         }
 
+        installingDownloads.Add(download);
         await installTurn.WaitAsync();
         try
         {
@@ -969,6 +1040,8 @@ public sealed partial class MainViewModel : LocalizedObservableObject
         finally
         {
             installTurn.Release();
+            installingDownloads.Remove(download);
+            RefreshKeptDownloads();
         }
     }
 
@@ -1856,6 +1929,7 @@ public sealed partial class MainViewModel : LocalizedObservableObject
             Log.Warn($"The mods folder could not be read: {ex.Message}");
             UnmanagedCount = 0;
         }
+        RefreshKeptDownloads();
         ue4ss = Game is null ? null : Ue4ssRuntime.Detect(Game);
         installedUe4ssVersion = manager?.InstalledUe4ssVersion;
         OnModsChanged();
