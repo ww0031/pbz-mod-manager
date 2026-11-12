@@ -2,6 +2,9 @@
 
 Bản tiếng Việt của CHANGELOG.md: giữ nguyên tiêu đề, mỗi thay đổi một dòng. Phiên bản chưa dịch hiển thị bằng tiếng Anh.
 
+## 2.3 (2026-11-12)
+- Sửa lỗi: khi .NET trên máy bị hỏng, ứng dụng tắt ngay mà không báo gì. Giờ ứng dụng sẽ báo và cho tải bản sửa của Microsoft
+
 ## 2.2 (2026-11-12)
 - Mod đã tải nhưng chưa cài vẫn còn sau khi mở lại ứng dụng. Chúng hiện trên trang Mod: bấm Cài để cài, không cần nữa thì bấm Xóa
 - Sửa lỗi: sau khi tắt máy và mở lại, ứng dụng đôi khi không mở được và báo "không phản hồi"

@@ -745,5 +745,6 @@
   "Donate any amount": "自選金額發電",
   "Opens afdian in your browser, where you choose the amount": "在瀏覽器開啟愛發電，金額由你決定",
   "Do not show again": "不再提醒",
-  "The changelog no longer opens by itself after an update. Changelog at the bottom left still shows it any time.": "以後更新完不再自動彈出更新內容，左下角的 Changelog 仍可隨時查看"
+  "The changelog no longer opens by itself after an update. Changelog at the bottom left still shows it any time.": "以後更新完不再自動彈出更新內容，左下角的 Changelog 仍可隨時查看",
+  "{0} cannot open: the .NET 8 runtime on this PC is damaged or missing files.\n\nClick Yes to download Microsoft's installer for it. Run it and choose Repair (or Install when there is no Repair), then open the app again.\n\nDetails: {1}": "{0} 無法開啟：這台電腦上的 .NET 8 執行階段損壞或缺少檔案。\n\n按「是」下載微軟的修復程式。下載完成後執行它，選「修復」（沒有這個選項就選「安裝」），完成後再開啟本軟體。\n\n詳細資訊：{1}"
 }

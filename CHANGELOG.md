@@ -4,6 +4,9 @@ What changed in each release of UE MM, newest first: one short line per change.
 The app shows this list (the **Changelog** link in the sidebar's update box), so
 every release adds its section at the top, as `## <version> (<yyyy-mm-dd>)`.
 
+## 2.3 (2026-11-12)
+- Fixed: when the .NET runtime on the PC was damaged, the app closed at once without a word. It now says so and offers to download Microsoft's repair
+
 ## 2.2 (2026-11-12)
 - Mods you downloaded but did not install stay after a restart. They show on the Mods page: click Install to add one, or Delete if you no longer want it
 - Fixed: after the PC was turned off and on again, the app sometimes did not open and said it "does not answer"

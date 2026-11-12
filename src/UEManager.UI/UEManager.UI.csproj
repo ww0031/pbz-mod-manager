@@ -8,6 +8,8 @@
     <AssemblyName>UEModManager</AssemblyName>
     <ApplicationIcon>app.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- Program.Main checks the .NET Desktop Runtime before WPF starts. -->
+    <StartupObject>UEManager.UI.Program</StartupObject>
 
     <!-- Release shape: one framework-dependent exe (needs the .NET 8 Desktop Runtime)
          and nothing else. Game profiles and theme art are built in. -->

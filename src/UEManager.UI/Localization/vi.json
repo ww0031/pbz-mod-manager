@@ -745,5 +745,6 @@
   "Donate any amount": "Ủng hộ số tiền tùy ý",
   "Opens afdian in your browser, where you choose the amount": "Mở afdian trong trình duyệt để bạn tự chọn số tiền",
   "Do not show again": "Không nhắc lại",
-  "The changelog no longer opens by itself after an update. Changelog at the bottom left still shows it any time.": "Nhật ký thay đổi sẽ không tự mở sau khi cập nhật nữa. Vẫn có thể xem bất cứ lúc nào qua Changelog ở góc dưới bên trái."
+  "The changelog no longer opens by itself after an update. Changelog at the bottom left still shows it any time.": "Nhật ký thay đổi sẽ không tự mở sau khi cập nhật nữa. Vẫn có thể xem bất cứ lúc nào qua Changelog ở góc dưới bên trái.",
+  "{0} cannot open: the .NET 8 runtime on this PC is damaged or missing files.\n\nClick Yes to download Microsoft's installer for it. Run it and choose Repair (or Install when there is no Repair), then open the app again.\n\nDetails: {1}": "{0} không mở được: .NET 8 trên máy này bị hỏng hoặc thiếu tệp.\n\nBấm Có (Yes) để tải trình cài đặt của Microsoft. Chạy nó và chọn Repair (hoặc Install nếu không có Repair), rồi mở lại ứng dụng.\n\nChi tiết: {1}"
 }
