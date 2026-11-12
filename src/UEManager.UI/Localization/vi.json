@@ -723,6 +723,7 @@
   "The mod list of Nexus Mods is not available right now": "Hiện chưa tải được danh sách mod của Nexus Mods",
   "Try fewer or other words.": "Hãy thử ít từ hơn hoặc từ khác.",
   "Preview": "Xem trước",
+  "Compact": "Gọn",
   "Endorsements": "Lượt thích",
   "Downloads": "Lượt tải",
   "The mod's page on Nexus Mods": "Trang của mod trên Nexus Mods",
@@ -734,5 +735,11 @@
   "Donate to the author": "Ủng hộ tác giả",
   "Support the author": "Ủng hộ tác giả",
   "Opens the afdian page of the author in your browser": "Mở trang afdian của tác giả trong trình duyệt",
-  "This modified version is free and open source, and every feature works the same without a donation. If you like it, you can support its author on afdian. It is fully optional.": "Bản sửa đổi này miễn phí và mã nguồn mở, mọi tính năng vẫn dùng được mà không cần ủng hộ. Nếu thấy hữu ích, bạn có thể ủng hộ tác giả của bản sửa đổi trên afdian. Hoàn toàn tự nguyện."
+  "This modified version is free and open source, and every feature works the same without a donation. If you like it, you can support its author on afdian. It is fully optional.": "Bản sửa đổi này miễn phí và mã nguồn mở, mọi tính năng vẫn dùng được mà không cần ủng hộ. Nếu thấy hữu ích, bạn có thể ủng hộ tác giả của bản sửa đổi trên afdian. Hoàn toàn tự nguyện.",
+  "Enjoying the manager? Buy the author a milk tea": "Thấy hữu ích? Mời tác giả một ly trà sữa nhé",
+  "The manager is free and open source, and every feature works without a donation. If it saved you time setting up mods, you can support the author on afdian with any amount you like. Every bit is a big encouragement and keeps the updates coming.": "Trình quản lý miễn phí và mã nguồn mở, mọi tính năng đều dùng được mà không cần ủng hộ. Nếu nó giúp bạn tiết kiệm thời gian cài mod, bạn có thể ủng hộ tác giả trên afdian với số tiền tùy ý. Mỗi chút đều là nguồn động viên lớn và giúp các bản cập nhật tiếp tục ra đời.",
+  "Donate any amount": "Ủng hộ số tiền tùy ý",
+  "Opens afdian in your browser, where you choose the amount": "Mở afdian trong trình duyệt để bạn tự chọn số tiền",
+  "Do not show again": "Không nhắc lại",
+  "The changelog no longer opens by itself after an update. Changelog at the bottom left still shows it any time.": "Nhật ký thay đổi sẽ không tự mở sau khi cập nhật nữa. Vẫn có thể xem bất cứ lúc nào qua Changelog ở góc dưới bên trái."
 }

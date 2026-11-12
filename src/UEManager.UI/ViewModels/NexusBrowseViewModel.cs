@@ -253,6 +253,8 @@ public sealed partial class NexusBrowseItemViewModel(NexusBrowseViewModel page, 
 
     public int ModId => mod.ModId;
 
+    public bool IsInstalled => installed is not null;
+
     public string Name => !page.ShowOriginal && translatedName is { Length: > 0 } name ? name : mod.Name;
 
     /// <summary>The name as its author wrote it, under the translated one.</summary>

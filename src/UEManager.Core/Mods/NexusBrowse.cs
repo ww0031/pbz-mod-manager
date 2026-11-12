@@ -37,30 +37,35 @@ public static partial class NexusMods
             $$"""
             query { mods(filter: { gameDomainName: [{ value: {{JsonSerializer.Serialize(game)}} }], adultContent: [{ value: false }]{{name}} },
               sort: [{ {{SortField(sort)}}: { direction: DESC } }], offset: {{offset}}, count: {{count}}) {
-              totalCount nodes { modId name summary pictureUrl thumbnailLargeUrl thumbnailUrl adultContent author version
-                endorsements downloads updatedAt modCategory { name } } } }
+              totalCount nodes { {{ListedFields}} } } }
             """, cancellation);
         var mods = data.GetProperty("mods");
-        var list = mods.GetProperty("nodes").EnumerateArray()
-            .Where(IsSafe)
-            .Select(m => new NexusListedMod(
-                m.GetProperty("modId").GetInt32(),
-                Text(m, "name") ?? "",
-                Text(m, "summary") ?? "",
-                Text(m, "pictureUrl"),
-                Text(m, "thumbnailLargeUrl") ?? Text(m, "thumbnailUrl"),
-                Text(m, "author"),
-                Text(m, "version") ?? "",
-                Number(m, "endorsements"),
-                Number(m, "downloads"),
-                DateTimeOffset.TryParse(Text(m, "updatedAt"), CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var updated) ? updated : null,
-                m.TryGetProperty("modCategory", out var category) && category.ValueKind == JsonValueKind.Object ? Text(category, "name") : null))
-            .ToList();
+        var list = mods.GetProperty("nodes").EnumerateArray().Where(IsSafe).Select(Listed).ToList();
         return new NexusModList(mods.GetProperty("totalCount").GetInt32(), list);
     }
 
-    /// <summary>The mod's description as the site keeps it (BBCode); null for a mod not marked as safe, which is never shown.</summary>
-    public static async Task<string?> DescriptionAsync(HttpClient http, NexusModRef mod, CancellationToken cancellation = default)
+    /// <summary>What a mod's card shows, as the site's GraphQL API names it.</summary>
+    private const string ListedFields =
+        "modId name summary pictureUrl thumbnailLargeUrl thumbnailUrl adultContent author version endorsements downloads updatedAt modCategory { name }";
+
+    private static NexusListedMod Listed(JsonElement m) => new(
+        m.GetProperty("modId").GetInt32(),
+        Text(m, "name") ?? "",
+        Text(m, "summary") ?? "",
+        Text(m, "pictureUrl"),
+        Text(m, "thumbnailLargeUrl") ?? Text(m, "thumbnailUrl"),
+        Text(m, "author"),
+        Text(m, "version") ?? "",
+        Number(m, "endorsements"),
+        Number(m, "downloads"),
+        DateTimeOffset.TryParse(Text(m, "updatedAt"), CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var updated) ? updated : null,
+        m.TryGetProperty("modCategory", out var category) && category.ValueKind == JsonValueKind.Object ? Text(category, "name") : null);
+
+    /// <summary>
+    /// The mod's description as the site keeps it (BBCode); null for a mod not marked as safe, unless
+    /// <paramref name="adult"/> allows it, as for a mod the player installed.
+    /// </summary>
+    public static async Task<string?> DescriptionAsync(HttpClient http, NexusModRef mod, bool adult = false, CancellationToken cancellation = default)
     {
         var gameId = await GameIdAsync(http, mod.Game, cancellation);
         var data = await QueryAsync(http,
@@ -68,7 +73,7 @@ public static partial class NexusMods
         var nodes = data.GetProperty("legacyMods").GetProperty("nodes");
         if (nodes.GetArrayLength() == 0)
             throw new ModException($"Nexus Mods has no mod {mod.ModId} for this game. Check the link.");
-        return IsSafe(nodes[0]) ? nodes[0].GetProperty("description").GetString() ?? "" : null;
+        return adult || IsSafe(nodes[0]) ? nodes[0].GetProperty("description").GetString() ?? "" : null;
     }
 
     /// <summary>What changed in the mod's newest versions, newest first, from the public API; no account needed.</summary>

@@ -21,10 +21,19 @@ public sealed class AppSettings
     /// <summary>The newest app version the banner at start announced; each new version is announced once.</summary>
     public string? AnnouncedUpdate { get; set; }
 
+    /// <summary>The app version whose changelog opened by itself at start; it opens once per version, the first start included.</summary>
+    public string? ShownChangelog { get; set; }
+
+    /// <summary>The changelog no longer opens by itself after an update: "Do not show again" in its window.</summary>
+    public bool HideChangelog { get; set; }
+
     /// <summary>The Mods page's sort column, such as "Name" or "Installed"; null for the default.</summary>
     public string? ModsSort { get; set; }
 
     public bool ModsSortDescending { get; set; }
+
+    /// <summary>The Mods page shows a compact table instead of cards with each mod's picture and summary from Nexus Mods.</summary>
+    public bool ModsCompact { get; set; }
 
     /// <summary>The mods the Mods page shows by their state, "Enabled" or "Disabled"; null for all of them.</summary>
     public string? ModsState { get; set; }

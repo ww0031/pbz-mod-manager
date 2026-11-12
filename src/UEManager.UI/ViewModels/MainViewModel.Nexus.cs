@@ -170,7 +170,7 @@ public sealed partial class MainViewModel
 
     /// <summary>
     /// Downloads a file of a Nexus Mods mod in the background and installs it. A new mod takes the mod's name on the
-    /// site, which the player can change in its details; an update keeps the installed mod's name.
+    /// site in the app's language, which the player can change in its details; an update keeps a name the player chose.
     /// </summary>
     private async Task<NexusStart> InstallNexusFileAsync(NexusModInfo info, NexusFile file, ModRecord? installed, NxmLink? nxm)
     {
@@ -217,7 +217,7 @@ public sealed partial class MainViewModel
             : Path.GetExtension(Uri.TryCreate(url, UriKind.Absolute, out var uri) ? Uri.UnescapeDataString(uri.AbsolutePath) : "");
         if (!ArchiveStager.IsSupported("download" + extension))
             extension = ".zip";
-        await InstallFromReleaseAsync(catalogId, installed?.Name ?? info.Name, file.Version, url is null ? [] : [url],
+        await InstallFromReleaseAsync(catalogId, await NexusModNameAsync(info, installed), file.Version, url is null ? [] : [url],
             NexusMods.DownloadFileName(info.Ref, file, extension), 0, null, shownSize: file.Size);
         if (installed is not null && manager!.Mods.All(m => m.Id != installed.Id))
         {
@@ -263,6 +263,8 @@ public sealed partial class MainViewModel
         }
         IsCheckingNexusUpdates = true;
         var failed = 0;
+        var infos = new List<NexusModInfo>();
+        var fromSite = new List<(ModRecord Mod, NexusModInfo Info)>();
         try
         {
             nexusUpdates.Clear();
@@ -271,8 +273,10 @@ public sealed partial class MainViewModel
                 try
                 {
                     var info = await NexusMods.GetModAsync(Http, group.Key);
+                    infos.Add(info);
                     foreach (var (mod, _) in group)
                     {
+                        fromSite.Add((mod, info));
                         if (NexusMods.FindUpdate(info.Files, mod.SourceFileName, mod.Version) is { } file)
                             nexusUpdates[mod.Id] = new NexusUpdate(info, file);
                     }
@@ -288,6 +292,7 @@ public sealed partial class MainViewModel
         {
             IsCheckingNexusUpdates = false;
         }
+        KeepNexusCards(infos);
         Log.Info($"Nexus Mods update check: {mods.Count} mod(s), {nexusUpdates.Count} update(s), {failed} failed.");
         RefreshMods();
         var count = NexusUpdateCount;
@@ -297,6 +302,8 @@ public sealed partial class MainViewModel
             ShowToast(L.T("Nexus Mods could not be reached for some mods. See the log."), isError: true);
         else if (!quiet)
             ShowToast(L.T("Every mod from Nexus Mods is up to date."));
+        await TranslateCardsAsync();
+        await NameInAppLanguageAsync(fromSite);
     }
 
     internal async Task UpdateNexusModAsync(ModRecord mod)

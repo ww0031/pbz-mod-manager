@@ -70,8 +70,16 @@
                      Tag="{ui:Loc 'Filter: mod name, version, PAK / IoStore, file name or tag'}" />
         </DockPanel>
 
-        <!-- Which mods the list shows: by their state, and by the player's tags once a mod has one. -->
+        <!-- Which mods the list shows: by their state, and by the player's tags once a mod has one; on the right, cards or table. -->
         <DockPanel Margin="0,0,0,6" Visibility="{Binding HasFilterRow, Converter={StaticResource Visible}}">
+            <ItemsControl DockPanel.Dock="Right" VerticalAlignment="Top" ItemsSource="{Binding ModsViewModes}" Focusable="False"
+                          ItemTemplate="{StaticResource FilterButton}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+            </ItemsControl>
             <ItemsControl DockPanel.Dock="Left" VerticalAlignment="Top" ItemsSource="{Binding StateFilters}" Focusable="False"
                           ItemTemplate="{StaticResource FilterButton}">
                 <ItemsControl.ItemsPanel>
@@ -108,8 +116,21 @@
             </DockPanel>
         </Border>
 
-        <!-- Table -->
-        <Border x:Name="Table" Style="{StaticResource Card}" Padding="0" SizeChanged="OnTableSizeChanged">
+        <!-- Cards: the preview mode -->
+        <StackPanel Visibility="{Binding ModsAsCards, Converter={StaticResource Visible}}">
+            <ItemsControl ItemsSource="{Binding ModsView}" Focusable="False" ItemTemplate="{StaticResource ModCard}" />
+            <Border Style="{StaticResource Card}" Padding="0,52" Visibility="{Binding ShowEmpty, Converter={StaticResource Visible}}">
+                <StackPanel HorizontalAlignment="Center">
+                    <ContentControl Style="{StaticResource BrandMark}" Width="40" Height="40" Opacity="0.5" />
+                    <TextBlock Margin="0,16,0,0" HorizontalAlignment="Center" Style="{StaticResource Text.Title}" Text="{Binding EmptyTitle}" />
+                    <TextBlock Margin="0,6,0,0" HorizontalAlignment="Center" Style="{StaticResource Text.Body}" Text="{Binding EmptyHint}" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+
+        <!-- Table: the compact mode -->
+        <Border x:Name="Table" Style="{StaticResource Card}" Padding="0" SizeChanged="OnTableSizeChanged"
+                Visibility="{Binding ModsAsTable, Converter={StaticResource Visible}}">
             <StackPanel>
                 <Grid Margin="22,12">
                     <Grid.ColumnDefinitions>

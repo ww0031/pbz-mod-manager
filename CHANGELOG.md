@@ -4,6 +4,11 @@ What changed in each release of UE MM, newest first: one short line per change.
 The app shows this list (the **Changelog** link in the sidebar's update box), so
 every release adds its section at the top, as `## <version> (<yyyy-mm-dd>)`.
 
+## 2.1 (2026-11-12)
+- The Mods page shows each mod as a card with its picture and summary from Nexus, as the Browse page does; switch between Preview and Compact above the list
+- Mods from Nexus are named in your language; an installed mod whose name is still the site's English name takes it too, and a name you chose stays
+- The changelog opens by itself on first use and after each update, with a button to donate any amount on afdian; tick "Do not show again" to turn it off
+
 ## 2.0 (2026-11-11)
 - New Browse mods page: browse, search and sort this game's Nexus mods, preview a mod and install it with one click; adult mods are never shown
 - Mod names, summaries, descriptions and changelogs from Nexus are translated with a free online translator; switch back to the original text at any time

@@ -27,7 +27,8 @@ public sealed record NexusFile(int FileId, string Name, string Version, string C
     public bool IsCurrent => Category is not ("OLD_VERSION" or "ARCHIVED" or "DELETED");
 }
 
-public sealed record NexusModInfo(NexusModRef Ref, string Name, IReadOnlyList<NexusFile> Files);
+/// <param name="Card">What the mod's card on the Mods page shows.</param>
+public sealed record NexusModInfo(NexusModRef Ref, string Name, IReadOnlyList<NexusFile> Files, NexusListedMod? Card = null);
 
 /// <summary>A "Mod Manager Download" link from the site: nxm://game/mods/1/files/2?key=…&amp;expires=….</summary>
 public sealed record NxmLink(NexusModRef Mod, int FileId, string Key, string Expires);
@@ -150,13 +151,13 @@ public static partial class NexusMods
         return $"{name} {mod.ModId} {version} {time} f{file.FileId}{extension}";
     }
 
-    /// <summary>The mod's name and files, from the public API; no account needed.</summary>
+    /// <summary>The mod's name, files and card, from the public API; no account needed.</summary>
     public static async Task<NexusModInfo> GetModAsync(HttpClient http, NexusModRef mod, CancellationToken cancellation = default)
     {
         var gameId = await GameIdAsync(http, mod.Game, cancellation);
         var data = await QueryAsync(http,
             $$"""
-            query { legacyMods(ids:[{gameId:{{gameId}}, modId:{{mod.ModId}}}]) { nodes { name } }
+            query { legacyMods(ids:[{gameId:{{gameId}}, modId:{{mod.ModId}}}]) { nodes { {{ListedFields}} } }
               modFiles(modId:{{mod.ModId}}, gameId:"{{gameId}}") { fileId name version category date sizeInBytes primary } }
             """, cancellation);
         var nodes = data.GetProperty("legacyMods").GetProperty("nodes");
@@ -171,7 +172,7 @@ public static partial class NexusMods
             long.TryParse(f.GetProperty("sizeInBytes").ToString(), NumberStyles.None, CultureInfo.InvariantCulture, out var size) ? size : 0,
             f.GetProperty("primary").ValueKind == JsonValueKind.Number ? f.GetProperty("primary").GetInt32() != 0 : f.GetProperty("primary").GetBoolean()))
             .ToList();
-        return new NexusModInfo(mod, nodes[0].GetProperty("name").GetString() ?? $"Mod {mod.ModId}", files);
+        return new NexusModInfo(mod, nodes[0].GetProperty("name").GetString() ?? $"Mod {mod.ModId}", files, Listed(nodes[0]));
     }
 
     /// <summary>

@@ -723,6 +723,7 @@
   "The mod list of Nexus Mods is not available right now": "暂时无法获取 N网 模组列表",
   "Try fewer or other words.": "试试更少或换个关键词。",
   "Preview": "预览",
+  "Compact": "简洁",
   "Endorsements": "点赞数",
   "Downloads": "下载量",
   "The mod's page on Nexus Mods": "模组在 N网 的页面",
@@ -734,5 +735,11 @@
   "Donate to the author": "打赏作者",
   "Support the author": "支持作者",
   "Opens the afdian page of the author in your browser": "在浏览器中打开作者的爱发电页面",
-  "This modified version is free and open source, and every feature works the same without a donation. If you like it, you can support its author on afdian. It is fully optional.": "本修改版免费开源，不打赏也能使用全部功能。如果觉得好用，可以在爱发电支持修改版的作者，完全自愿。"
+  "This modified version is free and open source, and every feature works the same without a donation. If you like it, you can support its author on afdian. It is fully optional.": "本修改版免费开源，不打赏也能使用全部功能。如果觉得好用，可以在爱发电支持修改版的作者，完全自愿。",
+  "Enjoying the manager? Buy the author a milk tea": "觉得好用，就请作者喝杯奶茶吧",
+  "The manager is free and open source, and every feature works without a donation. If it saved you time setting up mods, you can support the author on afdian with any amount you like. Every bit is a big encouragement and keeps the updates coming.": "管理器免费开源，不打赏也能用全部功能。如果它帮你省下了折腾模组的时间，欢迎在爱发电自选金额支持一下。几块钱也是很大的鼓励，更是持续更新的动力。",
+  "Donate any amount": "自选金额发电",
+  "Opens afdian in your browser, where you choose the amount": "在浏览器打开爱发电，金额由你决定",
+  "Do not show again": "不再提醒",
+  "The changelog no longer opens by itself after an update. Changelog at the bottom left still shows it any time.": "以后更新完不再自动弹出更新内容，左下角的 Changelog 仍可随时查看"
 }

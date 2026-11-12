@@ -2,6 +2,11 @@
 
 Bản tiếng Việt của CHANGELOG.md: giữ nguyên tiêu đề, mỗi thay đổi một dòng. Phiên bản chưa dịch hiển thị bằng tiếng Anh.
 
+## 2.1 (2026-11-12)
+- Trang Mod hiển thị mỗi mod thành thẻ với ảnh và mô tả ngắn từ Nexus, như trang Duyệt mod; chuyển giữa Xem trước và Gọn phía trên danh sách
+- Mod từ Nexus được đặt tên theo ngôn ngữ của bạn; mod đã cài còn giữ tên tiếng Anh của trang cũng được đổi, tên bạn tự đặt được giữ nguyên
+- Nhật ký thay đổi tự mở ở lần dùng đầu tiên và sau mỗi lần cập nhật, kèm nút ủng hộ số tiền tùy ý trên afdian; đánh dấu "Không nhắc lại" để tắt
+
 ## 2.0 (2026-11-11)
 - Trang Duyệt mod mới: duyệt, tìm và sắp xếp mod Nexus của trò chơi này, xem trước và cài bằng một lần nhấn; mod người lớn không bao giờ hiển thị
 - Tên, tóm tắt, mô tả và nhật ký thay đổi của mod từ Nexus được dịch bằng công cụ dịch trực tuyến miễn phí; có thể chuyển về bản gốc bất cứ lúc nào

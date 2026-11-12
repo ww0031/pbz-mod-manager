@@ -37,6 +37,9 @@ public sealed class AppPaths
     /// <summary>Machine translations of mod texts from Nexus Mods, kept so each text is translated once.</summary>
     public string TranslationsFile => Path.Combine(Root, "translations.json");
 
+    /// <summary>The Nexus Mods cards of the installed mods, so the Mods page shows them before the site answers.</summary>
+    public string NexusCardsFile => Path.Combine(Root, "nexus-cards.json");
+
     /// <summary>Scratch space for unpacked downloads. Emptied at start-up.</summary>
     public string StagingDir => Path.Combine(Root, "staging");
 

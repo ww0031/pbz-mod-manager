@@ -8,13 +8,13 @@
              xmlns:services="clr-namespace:UEManager.UI.Services"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:AppUpdateViewModel}">
-    <Border Style="{StaticResource Dialog}" Width="560">
+    <Border Style="{StaticResource Dialog}" Width="600">
         <StackPanel>
             <TextBlock Style="{StaticResource Text.Overline}" Text="{ui:Loc 'Changelog', Tracked=True}" />
             <TextBlock Margin="0,8,0,0" Style="{StaticResource Text.Title}" Text="{ui:Loc 'What changed in each version'}" />
 
             <!-- Every release, newest first: its version and date, then one short line per change. -->
-            <Border Margin="0,14,0,0" MaxHeight="440" Padding="16,6,16,10" CornerRadius="2" BorderThickness="1"
+            <Border Margin="0,14,0,0" MaxHeight="300" Padding="16,6,16,10" CornerRadius="2" BorderThickness="1"
                     Background="{StaticResource Brush.Field}" BorderBrush="{StaticResource Brush.Line}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <ItemsControl ItemsSource="{Binding Releases}" Focusable="False">
@@ -43,10 +43,28 @@
                 </ScrollViewer>
             </Border>
 
+            <!-- A donation, fully optional: the afdian page where the player picks the amount. -->
+            <Border Margin="0,14,0,0" Padding="16,14" CornerRadius="2" BorderThickness="1"
+                    Background="{StaticResource Brush.Field}" BorderBrush="{StaticResource Brush.Line}">
+                <DockPanel>
+                    <Button DockPanel.Dock="Right" Margin="16,0,0,0" VerticalAlignment="Center" Style="{StaticResource Button.Primary}"
+                            Content="{ui:Loc 'Donate any amount'}" ui:Icon.Glyph="&#xEB52;" Command="{Binding DonateAnyAmountCommand}"
+                            ToolTip="{ui:Loc 'Opens afdian in your browser, where you choose the amount'}" />
+                    <StackPanel>
+                        <TextBlock FontWeight="SemiBold" TextWrapping="Wrap" Foreground="{StaticResource Brush.Text}"
+                                   Text="{ui:Loc 'Enjoying the manager? Buy the author a milk tea'}" />
+                        <TextBlock Margin="0,4,0,0" FontSize="12.5" TextWrapping="Wrap" Foreground="{StaticResource Brush.TextMuted}"
+                                   Text="{ui:Loc 'The manager is free and open source, and every feature works without a donation. If it saved you time setting up mods, you can support the author on afdian with any amount you like. Every bit is a big encouragement and keeps the updates coming.'}" />
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+
             <DockPanel Margin="0,20,0,0" LastChildFill="False">
-                <Button DockPanel.Dock="Right" Margin="8,0,0,0" Style="{StaticResource Button.Primary}" Content="{ui:Loc 'Close'}"
+                <Button DockPanel.Dock="Right" Margin="16,0,0,0" Content="{ui:Loc 'Close'}"
                         Command="{Binding CloseChangelogCommand}" IsCancel="True" />
-                <Button DockPanel.Dock="Right" Content="{ui:Loc 'All releases on GitHub'}" ui:Icon.Glyph="&#xE8A7;"
+                <CheckBox DockPanel.Dock="Right" VerticalAlignment="Center" Content="{ui:Loc 'Do not show again'}" IsChecked="{Binding HideChangelog}"
+                          ToolTip="{ui:Loc 'The changelog no longer opens by itself after an update. Changelog at the bottom left still shows it any time.'}" />
+                <Button DockPanel.Dock="Left" Content="{ui:Loc 'All releases on GitHub'}" ui:Icon.Glyph="&#xE8A7;"
                         Command="{Binding OpenAllReleasesCommand}" ToolTip="{ui:Loc 'Every release with its full notes'}" />
             </DockPanel>
         </StackPanel>

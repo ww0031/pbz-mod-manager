@@ -662,9 +662,11 @@ public sealed partial class MainViewModel : LocalizedObservableObject
         gameWatch.Start();
         _ = CheckUe4ssManifestAsync();
         _ = Update.CheckAsync();
+        _ = TranslateCardsAsync();
         _ = CheckNexusUpdatesAsync(quiet: true);
         if (downloads.Count > 0)
             await InstallAsync(downloads);
+        _ = Update.OpenChangelogAtStartAsync();
     }
 
     /// <summary>
@@ -1921,6 +1923,28 @@ public sealed partial class MainViewModel : LocalizedObservableObject
         set
         {
             settings.AnnouncedUpdate = value;
+            SaveSettings();
+        }
+    }
+
+    /// <summary>See <see cref="AppSettings.ShownChangelog"/>.</summary>
+    internal string? ShownChangelog
+    {
+        get => settings.ShownChangelog;
+        set
+        {
+            settings.ShownChangelog = value;
+            SaveSettings();
+        }
+    }
+
+    /// <summary>See <see cref="AppSettings.HideChangelog"/>.</summary>
+    internal bool HideChangelog
+    {
+        get => settings.HideChangelog;
+        set
+        {
+            settings.HideChangelog = value;
             SaveSettings();
         }
     }

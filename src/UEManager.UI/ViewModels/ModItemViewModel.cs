@@ -1,5 +1,7 @@
 using System.Globalization;
 using System.Windows.Input;
+using System.Windows.Media;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using UEManager.Core.Mods;
 using UEManager.UI.Services;
@@ -15,6 +17,7 @@ public sealed partial class ModItemViewModel : LocalizedObservableObject
     private readonly MainViewModel owner;
     private readonly ModRecord record;
     private readonly string libraryFolder;
+    private readonly NexusListedMod? card;
 
     public ModItemViewModel(MainViewModel owner, ModRecord record, string libraryFolder)
     {
@@ -25,6 +28,34 @@ public sealed partial class ModItemViewModel : LocalizedObservableObject
         HasUe4ssErrors = owner.HadUe4ssErrors(record);
         ModPageUrl = record.Recommended ? null : owner.Profile.ModPage(record.SourceFileName);
         UpdateText = owner.NexusUpdateText(record);
+        card = owner.NexusCard(record);
+        if (card is not null && owner.ModsAsCards)
+            _ = LoadCoverAsync();
+    }
+
+    /// <summary>The mod is known on Nexus Mods, so its card shows the picture and summary from there, and a preview.</summary>
+    public bool HasCard => card is not null;
+
+    /// <summary>The mod's summary on Nexus Mods in the app's language; null without one.</summary>
+    public string? Summary => card is { Summary.Length: > 0 } ? owner.CardText(card.Summary) : null;
+
+    /// <summary>The mod's name on Nexus Mods, under a name of the player's own or a translated one; null when they are the same.</summary>
+    public string? OriginalName => card is null || NexusMods.SameName(card.Name, record.Name) ? null : card.Name;
+
+    [ObservableProperty]
+    private ImageSource? cover;
+
+    private async Task LoadCoverAsync()
+    {
+        if (owner.Covers is { } images)
+            Cover = await images.LoadAsync(card!.Thumbnail ?? card.Picture, 400);
+    }
+
+    [RelayCommand(CanExecute = nameof(HasCard))]
+    private void Preview()
+    {
+        if (card is not null)
+            owner.PreviewNexusMod(card);
     }
 
     /// <summary>The newer file on Nexus Mods, such as "Update to 3"; null when the mod has none or is not known there.</summary>
@@ -141,6 +172,7 @@ public sealed partial class ModItemViewModel : LocalizedObservableObject
     public bool Matches(string search) =>
         string.IsNullOrWhiteSpace(search)
         || Name.Contains(search, StringComparison.OrdinalIgnoreCase)
+        || (card?.Name.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false)
         || (record.Version?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false)
         || record.TypeLabel.Contains(search, StringComparison.OrdinalIgnoreCase)
         || KindText.Contains(search, StringComparison.OrdinalIgnoreCase)

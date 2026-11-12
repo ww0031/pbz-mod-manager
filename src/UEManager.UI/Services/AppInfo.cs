@@ -26,6 +26,9 @@ internal static class AppInfo
     /// <summary>The afdian page of this modified version's author, for a donation.</summary>
     public const string DonateUrl = "https://ifdian.net/a/ww0031";
 
+    /// <summary>The afdian page where the player picks the amount of a donation to the same author.</summary>
+    public const string DonateAnyAmountUrl = "https://ifdian.net/order/create?user_id=fd4daa82b1a511ed9d0752540025c377";
+
     public static string Version { get; } =
         Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion.Split('+')[0]
         ?? "0.0.0";

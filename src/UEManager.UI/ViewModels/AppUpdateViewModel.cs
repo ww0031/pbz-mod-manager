@@ -134,6 +134,17 @@ public sealed partial class AppUpdateViewModel(MainViewModel owner, HttpClient h
 
     public string BannerTitle => L.F($"Version {release?.Version} is available");
 
+    /// <summary>"Do not show again" in the changelog window.</summary>
+    public bool HideChangelog
+    {
+        get => owner.HideChangelog;
+        set
+        {
+            owner.HideChangelog = value;
+            OnPropertyChanged();
+        }
+    }
+
     public string DialogTitle => L.F($"Update to version {release?.Version}");
 
     public string DialogText => release?.Date is { } date
@@ -215,6 +226,24 @@ public sealed partial class AppUpdateViewModel(MainViewModel owner, HttpClient h
 
     [RelayCommand]
     private void CloseChangelog() => IsChangelogOpen = false;
+
+    /// <summary>
+    /// The changelog opens by itself once per version, so on the first start and after each update, unless the player
+    /// ticked "Do not show again". While a dialog or the busy screen is open, it waits.
+    /// </summary>
+    public async Task OpenChangelogAtStartAsync()
+    {
+        if (owner.HideChangelog || string.Equals(owner.ShownChangelog, AppInfo.Version, StringComparison.OrdinalIgnoreCase))
+            return;
+        while (owner.HasOverlay)
+            await Task.Delay(500);
+        owner.ShownChangelog = AppInfo.Version;
+        IsChangelogOpen = true;
+    }
+
+    /// <summary>The afdian page where the player picks the amount.</summary>
+    [RelayCommand]
+    private void DonateAnyAmount() => owner.OpenPath(AppInfo.DonateAnyAmountUrl);
 
     /// <summary>Every release on GitHub, with its full notes and files.</summary>
     [RelayCommand]
